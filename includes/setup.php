@@ -30,6 +30,7 @@ function pfund_activate( $flush_rules = true ) {
 				'allow_registration' => false,
 				'campaign_slug' => 'give',
 				'cause_slug' => 'causes',
+				'teamcampaigns_slug' => 'team',
 				'currency_symbol' => '$',
 				'date_format' => 'm/d/y',
 				'login_required' => true,
@@ -76,6 +77,21 @@ function pfund_activate( $flush_rules = true ) {
 					)
 				)
 			);
+			$options_changed = true;
+		}
+		if ( ! isset( $pfund_options['team_root'] ) ) {
+			$page = array(
+				'comment_status' => 'closed',
+				'ping_status' => 'closed',
+				'post_status' => 'publish',
+				'post_content' => '',
+				'post_name' => '_team_listing',
+				'post_title' => __( 'Team Listing', 'pfund' ),
+				'post_content' => '',
+				'post_type' => 'pfund_team_list'
+			);
+			$cause_root_id = wp_insert_post( $page );
+			$pfund_options['team_root'] = $cause_root_id;
 			$options_changed = true;
 		}
 		if ( ! isset( $pfund_options['cause_root'] ) ) {
@@ -215,6 +231,7 @@ function pfund_activate( $flush_rules = true ) {
 
 		if ( version_compare( $old_version, '0.7.3', '<' ) ) {
 			_pfund_add_sample_cause();
+			_pfund_add_sample_team();
 			if ( ! in_array( 'administrator', $pfund_options['submit_role'] ) ) {
 				$pfund_options['submit_role'][] = 'administrator';
 				$options_changed = true;
@@ -243,6 +260,7 @@ function pfund_activate( $flush_rules = true ) {
 	$role = get_role( 'administrator' );
 	if ( !empty( $role ) ) {
 		$role->add_cap( 'edit_campaign' );
+		
 	}
 	pfund_add_rewrite_rules( $flush_rules );
 }
@@ -254,13 +272,18 @@ function pfund_activate( $flush_rules = true ) {
 function pfund_add_rewrite_rules( $flush_rules = true ) {
 	$options = get_option( 'pfund_options' );
 	$campaign_root = $options['campaign_slug'];
-	$cause_root = $options['cause_slug'];	
+	$cause_root = $options['cause_slug'];
+	$team_root = $options['teamcampaigns_slug'];	
+
 	if ( $options['campaign_listing'] ) {
 		add_rewrite_rule("$campaign_root$", "index.php?pfund_action=campaign-list",'top');
 	}
 	add_rewrite_rule($campaign_root.'/([0-9]+)/?', 'index.php?post_type=pfund_campaign&p=$matches[1]&preview=true','top');
 	if ( $options['cause_listing']  ) {
 		add_rewrite_rule("$cause_root$", "index.php?pfund_action=cause-list",'top');
+	}
+	if ( $options['team_listing']  ) {
+		add_rewrite_rule("$team_root$", "index.php?pfund_action=team-list",'top');
 	}
 	if ( $flush_rules ) {
 		flush_rewrite_rules();
@@ -303,7 +326,7 @@ function pfund_pre_update_options( $new_options, $old_options ) {
 	}
 
 	$checkboxes = array( 'allow_registration', 'approval_required', 
-		'campaign_listing','cause_listing','login_required',  'mandrill',
+		'campaign_listing','cause_listing','team_listing','login_required',  'mandrill',
 		'paypal_sandbox', 'use_ssl', 'authorize_net_test_mode' );
 	foreach ( $checkboxes as $field_name) {
 		if ( isset( $new_options[$field_name] )
@@ -365,6 +388,7 @@ function _pfund_add_sample_cause() {
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-tally]', __( 'raised', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '[pfund-giver-tally]', __( 'givers', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '[pfund-days-left]', __( 'days left', 'pfund' ) );
+	
 	$sample_content .= '</ul>';
 	$sample_content .= '<div style="clear: both;">';
 	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
@@ -383,6 +407,36 @@ function _pfund_add_sample_cause() {
 	);
 	$cause_root_id = wp_insert_post( $cause );
 }
+
+/**/
+function _pfund_add_sample_team() {
+	$stat_li = '<li class="pfund-stat"><span class="highlight">%s</span>%s</li>';
+	$sample_content = '<ul>';
+	$sample_content .= sprintf( $stat_li, '$[pfund-gift-goal]', __( 'funding goal', 'pfund' ) );
+	$sample_content .= sprintf( $stat_li, '$[pfund-gift-tally]', __( 'raised', 'pfund' ) );
+	$sample_content .= sprintf( $stat_li, '[pfund-giver-tally]', __( 'givers', 'pfund' ) );
+	$sample_content .= sprintf( $stat_li, '[pfund-days-left]', __( 'days left', 'pfund' ) );
+	
+	$sample_content .= '</ul>';
+	$sample_content .= '<div style="clear: both;">';
+	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
+	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
+	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
+	$sample_content .= '	<p>[pfund-donate]<p>';
+	$sample_content .= '</div>';
+	$sample_content .= '[pfund-edit]';
+		
+	$cause = array(
+		'post_name' => 'sample-team',
+		'post_title' => __( 'sample-team', 'pfund' ),
+		'post_content' => $sample_content,
+		'post_status' => 'publish',
+		'post_type' => 'teamcampaigns'
+	);
+	$cause_root_id = wp_insert_post( $cause );
+}
+
+/**/
 
 /**
  * Loads the translation file; fired from init action.
@@ -426,6 +480,7 @@ function _pfund_register_types() {
 			'slug' => $pfund_options['campaign_slug'],
 			'with_front' => false
 		),
+		
 		'label' => __( 'Campaigns', 'pfund' ),
 		'labels' => array(
 			'name' => __( 'Campaigns', 'pfund' ),
@@ -444,10 +499,58 @@ function _pfund_register_types() {
 		'capabilities' => array(
 			'edit_post' => 'edit_campaign'
 		),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		
 	);
+	
 	register_post_type( 'pfund_campaign', $campaign_def );
 	register_post_type( 'pfund_campaign_list' );
+
+$args = array(
+'public' => true,
+		'query_var' => 'teamcampigns',
+		'rewrite' => array(
+			'slug' => $pfund_options['teamcampaigns_slug'],
+			'with_front' => true,
+		),
+  'label' => __( 'Team Campaigns' ),
+'labels' =>                             array(
+						
+						'all_items'           => 	'Team Campaigns',
+						'menu_name'	          =>	'Team Campaigns',
+						'singular_name'       =>	'Team Campaigns',
+					 	'edit_item'           =>	'Edit Team Campaigns',
+					 	 'new_item'            =>	'New Team Campaigns',
+						 'add_new'             =>  'Add New Team Campaign',
+					 	'view_item'           =>	'View Team Campaigns',
+					 	'items_archive'       =>	'Team Campaigns Archive',
+					 	'search_items'        =>	'Search Team Campaigns',
+					 	'not_found'	          =>	'No Team Campaigns found.',
+					 	'not_found_in_trash'  => 'No Team Campaigns found in trash.'
+					),
+	'supports'      =>	array( 'title', 'revisions' ),
+	'show_in_menu'  =>	'edit.php?post_type=pfund_campaign',
+	'map_meta_cap' => true,
+	'public'		    =>	true,
+	
+    		
+);
+register_post_type( 'Team Campaigns', $args );
 }
+add_action('admin_menu', 'mt_add_pages1');
+    function mt_add_pages1() {
+     add_submenu_page('edit.php?post_type=pfund_campaign', __('Add New Team Campaigns','menu-test'),
+	  __('Add New Team Campaigns','menu-test'), 'manage_options', 'teamcampaigns', 'mt_settings_pages');
+	
+    function mt_settings_pages() {
+		$site_url = site_url();
+		?>
+   <script>
+   window.location.href="<?php echo $site_url;?>/wp-admin/post-new.php?post_type=teamcampaigns";
+   </script> 
+
+    <?php }
+
+    }
 
 ?>

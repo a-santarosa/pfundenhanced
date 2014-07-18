@@ -126,13 +126,15 @@ function pfund_add_gift( $transaction_array, $post ) {
  */
 function pfund_campaign_list() {
 	global $wp_query;
+	$id = $_REQUEST['id'];
 	wp_enqueue_style( 'pfund-user', pfund_determine_file_location('user','css'),
 			array(), PFUND_VERSION );
 	$post_query = array(
 		'post_type' => 'pfund_campaign',
 		'orderby' => 'title',
 		'order' => 'ASC',
-		'posts_per_page' => -1
+		'posts_per_page' => -1,
+		'author' => $id
 	);
 
 	if ( isset(  $wp_query->query_vars['pfund_cause_id'] ) ) {
@@ -216,6 +218,50 @@ function pfund_cause_list() {
 	$list_content .= '</ul>';
 	return $list_content;
 }
+/**/
+function pfund_team_list() {
+	wp_enqueue_style( 'pfund-user', pfund_determine_file_location('user','css'),
+			array(), PFUND_VERSION );
+	$options = get_option( 'pfund_options' );
+	$team = get_posts(
+		array(
+			'post_type' => 'teamcampaigns',
+			'orderby' => 'title',
+			'order' => 'ASC',
+			'posts_per_page' => -1
+		)
+	);
+	$campaign_list_url = '/'.$options['teamcampaigns_slug'].'/?pfund_cause_id=';
+
+
+	$user_can_create = _pfund_current_user_can_create( $options );
+	$list_content = '<ul class="pfund-list">';
+	foreach ($causes as $cause) {
+		$list_content .= '<li>';
+		$list_content .= '	<h2>';
+		$list_content .= '		<a href="'.$campaign_list_url.$cause->ID.'">'.$cause->post_title.'</a></h2>';
+		$list_content .= '<p class="pfund-cause-description">';
+		$cause_img = get_post_meta($cause->ID, '_pfund_cause_image', true);
+		if ( $cause_img ) {
+			$list_content .= '<img class="pfund-image" width="184" src="'.wp_get_attachment_url( $cause_img ).'"/>';
+		}
+		$list_content .= '<span>';
+		$list_content .= get_post_meta($cause->ID, '_pfund_cause_description', true);
+		$list_content .= '</span>';
+		$list_content .= '</p>';
+		if ( $user_can_create ) {
+			$list_content .= '<p>';
+			$list_content .= '<a href="'.get_permalink($cause->ID).'">'.__( 'Create My Page', 'pfund' ).'</a>';
+			$list_content .= '</p>';
+		}
+		$list_content .= '</li>';
+
+	}
+	$list_content .= '</ul>';
+	return $list_content;
+}
+
+/**/
 
 /**
  * Handler for campaign comments shortcode (pfund-comments).
@@ -290,6 +336,25 @@ function pfund_comments() {
  */
 function pfund_days_left( $attrs ) {
     $post = _pfund_get_shortcode_campaign( $attrs );
+	
+	if($post->post_type=='teamcampaigns'){
+		
+	$postid = $post->ID;
+	if ( _pfund_is_edit_new_campaign() ) {
+		$postid = _pfund_get_new_campaign()->ID;
+	}
+	$end_date = get_post_meta( $post->ID, '_pfund_end-date', true );
+	$now = time();
+	$diff = ( strtotime( $end_date ) - $now );
+	$days = round($diff / 86400);
+	if ( $days < -1 ) {
+		$days = 0;
+	} else if ( $days <= 1 ) {
+		$days = 1;
+	}
+	return $days;
+		}
+	
 	if ( ! pfund_is_pfund_post( $post ) ){
 		return '';
 	}
@@ -309,12 +374,67 @@ function pfund_days_left( $attrs ) {
 	return $days;
 }
 
+
 /**
  * Direct causes and campaigns to the proper display template.
  * @return void
  */
 function pfund_display_template() {
 	global $post;
+	if ( $post->post_type == 'teamcampaigns' ) {$options = get_option( 'pfund_options' );
+	$script_reqs = array( 'jquery', 'jquery-ui-dialog', 'jquery-ui-datepicker' );
+	if ( $options['allow_registration'] ) {
+		$script_reqs[] = 'jquery-form';
+	}
+    wp_enqueue_script( 'pfund-user', pfund_determine_file_location('user','js'),
+			$script_reqs, PFUND_VERSION, true );
+	wp_enqueue_style( 'pfund-user', pfund_determine_file_location('user','css'),
+			array(), PFUND_VERSION );
+	$admin_email = get_option( 'admin_email' );
+	$script_vars = array(
+		'cancel_btn' => __( 'Cancel', 'pfund' ),
+		'continue_editing_btn' => __( 'Continue Editing', 'pfund' ),
+		'email_exists' => __( 'This email address is already registered', 'pfund' ),
+		'invalid_email' =>__( 'Invalid email address', 'pfund' ),
+		'login_btn' => __( 'Login', 'pfund' ),
+		'mask_passwd' => __( 'Mask password', 'pfund' ),
+		'ok_btn' => __( 'Ok', 'pfund' ),
+        'processing_msg' => __( 'Processing...', 'pfund' ),        
+		'register_btn' => __( 'Register', 'pfund' ),
+		'register_fail' => sprintf( __( '<strong>ERROR</strong>: Couldn&#8217;t register you.  Please contact <a href="mailto:%s">us</a>.' ), $admin_email ),
+		'reg_wait_msg' => __( 'Please wait while your registration is processed.', 'pfund' ),
+		'save_warning' => __( 'Your campaign has not been saved.  If you would like to save your campaign, stay on this page, click on the Edit button and then click on the Ok button.', 'pfund' ),
+        'thank_you_msg' => __( 'Thank you for your donation!', 'pfund' ),
+		'unmask_passwd' => __( 'Unmask password', 'pfund' ),
+		'username_exists' => __( 'This username is already registered', 'pfund' )        
+	);
+	if ( ! empty( $options['date_format'] ) ) {
+		$script_vars['date_format'] = _pfund_get_jquery_date_fmt( $options['date_format'] );
+	}
+	$login_fn = apply_filters( 'pfund_login_javascript_function', '' );
+	if ( ! empty( $login_fn ) ) {
+		$script_vars['login_fn'] = $login_fn;
+	}
+	$register_fn = apply_filters( 'pfund_register_javascript_function', '' );
+	if ( ! empty( $register_fn ) ) {
+		$script_vars['register_fn'] = $register_fn;
+	}
+    $script_vars['validation_rules'] = pfund_get_validation_js();
+	wp_localize_script( 'pfund-user', 'pfund', $script_vars );
+
+    wp_enqueue_style( 'jquery-ui-pfund', PFUND_URL.'css/smoothness/jquery.ui.pfund.css', array(), '1.8.14' );    
+
+	wp_enqueue_script( 'jquery-validationEngine', PFUND_URL.'js/jquery.validationEngine.js', array( 'jquery'), 1.7, true );
+	wp_enqueue_style( 'jquery-validationEngine', PFUND_URL.'css/jquery.validationEngine.css', array(), 1.7 );
+
+	$templates[] = 'page.php';
+	$template = apply_filters( 'page_template', locate_template( $templates ) );
+
+	if( '' != $template ) {
+		load_template( $template );
+		// The exit tells WP to not try to load any more templates
+		exit;
+	}}
 	if ( ! pfund_is_pfund_post( $post, true ) ){
 		//Only change the template for pfund causes and campaigns
 		return;
@@ -383,6 +503,42 @@ function pfund_display_template() {
 function pfund_donate_button() {
 	global $post;
 	$options = get_option( 'pfund_options' );
+	if($post->post_type=='teamcampaigns'){$page_url = get_permalink( $post );
+	$gentime = time();
+	$returnparms = array(
+		'g' => $gentime,
+		'n' => 	wp_create_nonce( 'pfund-donate-campaign'.$post->ID.$gentime ),
+		'pfund_action'=>'donate-campaign',
+		't' => 'pp'
+	);
+	$return_url = $page_url . '?' . http_build_query($returnparms);
+	$returnparms['t'] = 'ipn';
+	$notify_url = $page_url . '?' . http_build_query($returnparms);
+	$donate_btn = $options['paypal_donate_btn'];
+	if ( ! empty( $donate_btn ) ) {
+		$btn_doc = new DOMDocument();
+		$btn_doc->loadHTML( $donate_btn );
+		$form_node = $btn_doc->getElementsByTagName('form')->item(0);
+		$form_node->setAttribute( 'class' , 'pfund-donate-form' );
+		_pfund_create_input_node( $btn_doc, $form_node, 'return', $return_url );
+		_pfund_create_input_node( $btn_doc, $form_node, 'cancel_return', $page_url );
+		_pfund_create_input_node( $btn_doc, $form_node, 'notify_url', $notify_url );
+		$tmp_node = $btn_doc->createElement( 'br' );
+		$form_node->appendChild($tmp_node);
+		$tmp_node = $btn_doc->createElement( 'label',
+				__('Anonymous gift', 'pfund')
+		);
+		$tmp_node->setAttribute( 'for' , 'pfund-anonymous-donate' );
+		$form_node->appendChild($tmp_node);
+		$tmp_node = _pfund_create_input_node( $btn_doc, $form_node, 'custom', 'anon', 'checkbox' );
+		$tmp_node->setAttribute( 'id', 'pfund-anonymous-donate' );
+		$donate_btn = $btn_doc->saveHTML();
+		$form_start = strpos( $donate_btn, '<form' );
+		$form_length = (strpos( $donate_btn, '</form>', $form_start ) - $form_start) + 7;
+		$donate_btn = substr( $donate_btn, $form_start, $form_length );
+	}
+	$donate_btn = apply_filters( 'pfund_donate_button', $donate_btn, $page_url, $return_url );
+	return $donate_btn;}
 	if ( ! pfund_is_pfund_post() ) {
 		return '';
 	}	
@@ -479,6 +635,129 @@ function pfund_authorize_net_donate_form() {
 function pfund_edit() {
 	global $post, $current_user;
 	$current_user = wp_get_current_user();
+	/**/
+	if ( $post->post_type == 'teamcampaigns' ) {
+		if( $post->post_type == 'teamcampaigns') {
+		$editing_campaign = _pfund_is_edit_new_campaign();
+		if ( $editing_campaign ) {
+			$campaign = _pfund_get_new_campaign();
+			$campaign_id = $campaign->ID;
+			$campaign_title = $campaign->post_title;
+		} else {
+			$campaign_title = $post->post_title;			
+			$campaign_id = null;
+		}
+		$default_goal = get_post_meta( $post->ID, '_pfund_cause_default_goal', true);
+	} else {
+		$editing_campaign = true;
+		$campaign_id = $post->ID;
+		$campaign_title = $post->post_title;
+		$campaign = $post;
+		$default_goal = '';
+	}
+
+	$wait_title = esc_attr__( 'Please wait', 'pfund' );
+	if ( ($editing_campaign) && $post->post_name=='sample-team'  ) {
+		$dialog_title = esc_attr__( 'Edit Campaign', 'pfund' );
+		$dialog_desc = esc_html__( 'Change your campaign by editing the information below.', 'pfund' );
+		$wait_desc = esc_html__( 'Please wait while your campaign is updated.', 'pfund' );
+		$dialog_id = 'pfund-edit-dialog';
+	} else {
+		if($post->post_name=='sample-team'){
+		$dialog_title = esc_attr__( 'Create Team Campaign', 'pfund' );
+		$dialog_desc = esc_html__( 'Please fill in the following information to create your Team campaign.', 'pfund' );
+		$wait_desc = esc_html__( 'Please wait while your Team campaign is created.', 'pfund' );
+		$dialog_id = 'pfund-add-dialog';
+		}
+	}
+        $dropdown_options = 
+	$return_form = '<div id="pfund-wait-dialog" style="display:none;" title="'.$wait_title.'">';
+	$return_form .= '<div>'.$wait_desc.'</div>';
+	$return_form .= '</div>';
+	$return_form .= '<div id="'.$dialog_id.'" style="display:none;" title="'.$dialog_title.'">';
+	$return_form .= '<div>'.$dialog_desc.'</div>';
+	$return_form .= '<form enctype="multipart/form-data" action="" method="post" name="pfund_form" id="pfund-form">';
+
+	if (($post->ID !='') && ($post->post_name!='sample-team')) {
+			
+		$return_form .= '	<input type="hidden" name="pfund_action" value="update-teamcampaigns"/>';
+		$return_form .= '	<input id="pfund-teamcampaigns-id" type="hidden" name="pfund_teamcampaigns_id" value="'.$post->ID.'"/>';
+		$return_form .= wp_nonce_field( 'pfund-update-teamcampaigns'.$post->ID, 'n', true , false );
+	} else {
+		/**/
+		global $wpdb;
+		$table_name = $wpdb->prefix . "posts"; 
+        $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`),`id` FROM ".$table_name." WHERE `post_type` = 'pfund_cause'");
+$return_form .= '<label for="cause-slug"><b>Select Cause</b><abbr title="required">*</abbr></label><select name="cause-slug"><option>Select Any One</option>';
+foreach($sql as $data)
+{
+$return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 'selected=selected':"").'>'.$data->post_title.'</option>';
+
+ }
+ $return_form .= '</select>';
+/**/
+		$return_form .= '	<input type="hidden" name="pfund_action" value="create-teamcampaigns"/>
+		<input type="hidden" name="post_type" value="teamcampaigns"/>';
+		$return_form .= wp_nonce_field( 'pfund-create-teamcampaigns'.$post->ID, 'n', true , false );
+	}
+	
+	$return_form .= pfund_render_fields1( $post->ID, $campaign_title, $editing_campaign, $default_goal );
+
+
+ $return_form .= '</select>';?>
+
+<?php
+
+
+	$return_form .= '</form>';
+	$return_form .= '</div>';
+	$validateSlug = array(
+		'file' => PFUND_URL.'validate-slug.php',
+		'alertTextLoad' => __( 'Please wait while we validate this location', 'pfund' ),
+		'alertText' => __( '* This location is already taken', 'pfund' )
+	);
+	if ( $editing_campaign ) {
+		$validateSlug['extraData'] = $campaign_id;
+	}
+	//$return_form .= '<button class="pfund-edit-btn">'. __( 'Edit', 'pfund' ).'</button>';
+	$matv = get_post_meta($post->ID,'_pfund_camp-title');
+	global $wpdb;
+    $table_name = $wpdb->prefix . "posts"; 
+	$table_name1 = $wpdb->prefix . "postmeta"; 
+	
+	$sql1 = $wpdb->get_results("SELECT distinct(post_author),id FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); 
+	
+	$return_form .='<div style="padding:10px 0px;margin-top:20px;">
+	<h2>Lists Of Team Members</h2>
+	<ul>';
+	foreach($sql1 as $data1){
+	$raised=get_post_meta($data1->id,'_pfund_gift-tally');
+	if($data1->post_author != $same){	
+	$userdata=get_userdata( $data1->post_author );	
+	$return_form .='<li><a href='.site_url().'/give/?id='.$data1->post_author.'>'.$userdata->display_name.'</a></li>';
+	}
+	$total[] =$raised[0];
+	$same=$data1->post_author;
+	}
+	$return_form .='</ul>';
+    if(!empty($total)){
+	//$return_form .='<h2>Total Raised By Team :- $'.array_sum($total).'</h2>';
+	$return_form .=
+	'<script type="text/javascript">
+	jQuery( document ).ready(function() {
+	jQuery( "ul li:nth-child(2) .highlight" ).text( "$'.array_sum($total).'" );
+	jQuery( "ul li:nth-child(3).pfund-stat ").hide();
+	});
+	</script>';
+	}
+	
+	$return_form .='</div>';
+	return $return_form;	
+	}
+	
+	/**/
+	
+	
 	if ( ! pfund_is_pfund_post() ){
 		return '';
 	} else if ( ! _pfund_current_user_can_create( ) ) {
@@ -486,7 +765,7 @@ function pfund_edit() {
 	} else if ( $post->post_type == 'pfund_campaign' && $post->post_author != $current_user->ID ) {
 		return '';
 	}
-	if( $post->post_type == 'pfund_cause' ) {
+	if( $post->post_type == 'pfund_cause') {
 		$editing_campaign = _pfund_is_edit_new_campaign();
 		if ( $editing_campaign ) {
 			$campaign = _pfund_get_new_campaign();
@@ -517,6 +796,7 @@ function pfund_edit() {
 		$wait_desc = esc_html__( 'Please wait while your campaign is created.', 'pfund' );
 		$dialog_id = 'pfund-add-dialog';
 	}
+        $dropdown_options = 
 	$return_form = '<div id="pfund-wait-dialog" style="display:none;" title="'.$wait_title.'">';
 	$return_form .= '<div>'.$wait_desc.'</div>';
 	$return_form .= '</div>';
@@ -525,6 +805,7 @@ function pfund_edit() {
 	$return_form .= '<form enctype="multipart/form-data" action="" method="post" name="pfund_form" id="pfund-form">';
 
 	if ( $editing_campaign ) {
+			
 		$return_form .= '	<input type="hidden" name="pfund_action" value="update-campaign"/>';
 		$return_form .= '	<input id="pfund-campaign-id" type="hidden" name="pfund_campaign_id" value="'.$campaign_id.'"/>';
 		$return_form .= wp_nonce_field( 'pfund-update-campaign'.$campaign_id, 'n', true , false );
@@ -532,7 +813,31 @@ function pfund_edit() {
 		$return_form .= '	<input type="hidden" name="pfund_action" value="create-campaign"/>';
 		$return_form .= wp_nonce_field( 'pfund-create-campaign'.$post->ID, 'n', true , false );
 	}
+	
 	$return_form .= pfund_render_fields( $campaign_id, $campaign_title, $editing_campaign, $default_goal );
+
+$value = get_post_meta( $campaign_id, 'team_campaigns', true );
+global $wpdb;
+$table_name = $wpdb->prefix . "posts";
+$table_name1 = $wpdb->prefix . "postmeta";
+ 
+$sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE  a.`ID` = b.`post_id` AND `post_type` = 'teamcampaigns' AND `post_status`='publish'");
+
+
+$return_form .= '<select name="team_campaigns"><option>Select Team</option>';
+foreach($sql as $data)
+{
+	if($data->post_title!='sample-team'){
+$return_form .= '<option value="'. $data->post_title.'" ' . (($value == $data->post_title) ? "selected" : "selected").'>'.$data->post_title.'</option>';	
+
+	}
+
+ }
+ $return_form .= '</select>';?>
+
+<?php
+
+
 	$return_form .= '</form>';
 	$return_form .= '</div>';
 	$validateSlug = array(
@@ -544,8 +849,11 @@ function pfund_edit() {
 		$validateSlug['extraData'] = $campaign_id;
 	}
 	$return_form .= '<button class="pfund-edit-btn">'. __( 'Edit', 'pfund' ).'</button>';
+
 	return $return_form;	
 }
+
+
 
 /**
  * Shortcode handler for pfund-giver-list shortcode.  Returns markup for the
@@ -616,12 +924,71 @@ function pfund_handle_action( $posts ) {
 	global $pfund_processed_action, $pfund_processing_action, $wp_query;
 	if ( empty ( $posts ) ) {
 		return $posts;
-	}
+	}		
+
 	$post = $posts[0];
 	if ( isset( $wp_query->query_vars['pfund_action'] ) 
 			&& ! $pfund_processed_action && ! $pfund_processing_action ) {
+			
 		$pfund_processing_action = true;
 		$action = $wp_query->query_vars['pfund_action'];
+		
+		switch( $action ) {
+			case 'teamcampaigns-created':
+                _pfund_campaign_created1( $post );
+                break;
+				case 'update-teamcampaigns':
+				_pfund_save_teamcamp( $post, 'update' );
+				update_post_meta($post->ID,'team_campaigns',$_POST['team_campaigns']);
+				break;
+				case 'team-list':
+				$posts = _pfund_team_list_page();
+				break;
+				
+		}
+		if($_POST['post_type']=='teamcampaigns'){
+			switch( $action ) {
+			case 'campaign-list':
+				$posts = _pfund_campaign_list_page();
+				break;
+			case 'cause-list':
+				$posts = _pfund_cause_list_page();
+				break;
+			case 'team-list':
+				$posts = _pfund_team_list_page();
+				break;	
+			case 'create-campaign':
+				_pfund_save_camp( $post, 'add' );
+				break;
+			case 'create-teamcampaigns':
+				_pfund_save_teamcamp( $post, 'add' );
+				break;	
+            case 'campaign-created':
+                _pfund_campaign_created( $post );
+                break;
+			case 'teamcampaigns-created':
+                _pfund_campaign_created1( $post );
+                break;
+			case 'donate-campaign':
+				_pfund_process_donate( $post );
+				break;
+			case 'donate-thanks':
+				_pfund_display_thanks();
+				break;
+			case 'update-campaign':
+				_pfund_save_camp( $post, 'update' );
+				update_post_meta($post->ID,'team_campaigns',$_POST['team_campaigns']);
+				break;
+				case 'update-teamcampaigns':
+				_pfund_save_teamcamp( $post, 'update' );
+				update_post_meta($post->ID,'team_campaigns',$_POST['team_campaigns']);
+				break;
+			case 'user-login':
+				_pfund_save_camp( $post, 'user-login' );
+				break;
+		}
+			}	
+		
 		if ( ! in_array( $action, array( 'cause-list', 'campaign-list' ) ) ) {			
 			if ( ! pfund_is_pfund_post( $post ) ){
 				return $posts;
@@ -644,8 +1011,13 @@ function pfund_handle_action( $posts ) {
 			} else {
 				check_admin_referer( $referer_action, 'n' );
 			}
-		}			
+		}
+	
+			
 		switch( $action ) {
+			case 'team-list':
+				$posts = _pfund_team_list_page();
+				break;
 			case 'campaign-list':
 				$posts = _pfund_campaign_list_page();
 				break;
@@ -655,8 +1027,14 @@ function pfund_handle_action( $posts ) {
 			case 'create-campaign':
 				_pfund_save_camp( $post, 'add' );
 				break;
+			case 'create-teamcampaigns':
+				_pfund_save_camp( $post, 'add' );
+				break;	
             case 'campaign-created':
                 _pfund_campaign_created( $post );
+                break;
+			case 'teamcampaigns-created':
+                _pfund_campaign_created1( $post );
                 break;
 			case 'donate-campaign':
 				_pfund_process_donate( $post );
@@ -666,6 +1044,11 @@ function pfund_handle_action( $posts ) {
 				break;
 			case 'update-campaign':
 				_pfund_save_camp( $post, 'update' );
+				update_post_meta($post->ID,'team_campaigns',$_POST['team_campaigns']);
+				break;
+				case 'update-teamcampaigns':
+				_pfund_save_teamcamp( $post, 'update' );
+				update_post_meta($post->ID,'team_campaigns',$_POST['team_campaigns']);
 				break;
 			case 'user-login':
 				_pfund_save_camp( $post, 'user-login' );
@@ -862,6 +1245,8 @@ function pfund_send_goal_reached_email( $transaction_array, $post, $goal ) {
 	}
 }
 
+
+
 /**
  * Setup the short codes that personal fundraiser uses.
  */
@@ -870,10 +1255,13 @@ function pfund_setup_shortcodes() {
 	add_shortcode( 'pfund-campaign-list', 'pfund_campaign_list' );
 	add_shortcode( 'pfund-campaign-permalink', 'pfund_campaign_permalink');
 	add_shortcode( 'pfund-cause-list', 'pfund_cause_list' );
+	add_shortcode( 'pfund-team-list', 'pfund_team_list' );
 	add_shortcode( 'pfund-comments', 'pfund_comments' );
 	add_shortcode( 'pfund-days-left', 'pfund_days_left' );
+	
 	add_shortcode( 'pfund-donate', 'pfund_donate_button' );
 	add_shortcode( 'pfund-edit', 'pfund_edit' );
+	add_shortcode( 'pfund-teamedit', 'pfund_teamedit' );
 	add_shortcode( 'pfund-giver-list', 'pfund_giver_list' );
 	add_shortcode( 'pfund-progress-bar', 'pfund_progress_bar' );
     add_shortcode( 'pfund-total-campaigns', 'pfund_get_total_published_campaigns' );
@@ -1068,6 +1456,18 @@ function _pfund_campaign_list_page() {
 
 }
 
+/**/
+function _pfund_campaign_created1( $campaign ) {
+    $update_title = esc_attr__( 'Team Campaign added', 'pfund');    
+    //$camp_url = get_permalink( $campaign->ID );
+	$camp_url = get_permalink( $campaign->ID );
+    //print_r($camp_url);die();
+	$update_message = __( 'Your Team campaign has been created and is now available for public viewing here at <a href="%s">%s</a>.', 'pfund' );
+    $update_content = sprintf( $update_message, $camp_url, $camp_url );
+    _pfund_set_update_message1( $update_title, $update_content);    
+}
+/**/
+
 function _pfund_campaign_created( $campaign ) {
     $update_title = esc_attr__( 'Campaign added', 'pfund');    
     $camp_url = get_permalink( $campaign->ID );
@@ -1081,10 +1481,20 @@ function _pfund_campaign_created( $campaign ) {
  * @return array with 1 page/post that contains the campaign list.
  */
 function _pfund_cause_list_page() {
+	
 	$options = get_option( 'pfund_options' );
 	$page = get_page( $options['cause_root']);
 	$page->post_title = __( 'Cause List', 'pfund' );
 	$page->post_content = pfund_cause_list();
+	return array( $page );
+}
+
+function _pfund_team_list_page() {
+	
+	$options = get_option( 'pfund_options' );
+	$page = get_page( $options['cause_root']);
+	$page->post_title = __( 'Team List', 'pfund' );
+	$page->post_content = pfund_team_list();
 	return array( $page );
 }
 
@@ -1189,7 +1599,56 @@ function _pfund_display_thanks() {
  * @return string The data associated to the specified personal fundraiser field.
  */
 function _pfund_dynamic_shortcode( $attrs, $content, $tag ) {
-    $post = _pfund_get_shortcode_campaign( $attrs );
+	$post = _pfund_get_shortcode_campaign( $attrs );
+	
+	if($post->post_type=='teamcampaigns'){
+		$postid = $post->ID;	
+	if ( _pfund_is_edit_new_campaign() ) {
+		$postid = _pfund_get_new_campaign()->ID;
+	}
+
+	$options = get_option( 'pfund_options' );
+	$field_id = substr( $tag, 6 );
+	$field = $options['fields'][$field_id];
+
+	$data = get_post_meta( $postid, '_pfund_'.$field_id, true );
+	$return_data = '';
+	switch ( $field['type'] ) {
+		case 'end_date':
+		case 'date':
+			if( ! empty( $data ) ) {
+				$return_data = pfund_format_date( $data , $options['date_format'] );
+			}
+			break;
+		case 'text':
+		case 'textarea':
+			$return_data = wpautop( make_clickable( $data ) );
+			break;
+		case 'image':
+			if( empty( $data ) && isset( $attrs['default'] ) ) {
+				$img_src = $attrs['default'];
+			} else if ( ! empty( $data ) ) {
+				$img_src = wp_get_attachment_url( $data );
+			}
+			if ( ! empty( $img_src ) ) {
+				$return_data = '<img class="pfund-img" src="' .$img_src. '" />';
+			}
+			break;
+		case 'user_goal':
+		case 'gift_tally':
+		case 'giver_tally':
+			if ( empty ( $data ) ) {
+				$data = '0';
+			}
+			$return_data = number_format_i18n( floatval( $data ) );
+			break;
+		default:
+			$return_data = apply_filters( 'pfund_'.$field['type'].'_shortcode', $data );
+	}
+	if ( ! empty ( $attrs['esc_js'] ) && $attrs['esc_js'] == 'true' ) {
+		$return_data = esc_js($return_data);
+	}
+	return $return_data;}
 	if ( ! pfund_is_pfund_post( $post ) ){
 		return '';
 	}
@@ -1401,7 +1860,165 @@ function _pfund_process_donate( $post ){
  * @param mixed $post the current cause or campaign to use to save the campaign.
  * @param string $update_type either 'add' or 'update.
  */
+ 
+/**/
+function _pfund_save_teamcamp( $post, $update_type = 'add' ) {
+	global $pfund_new_campaign, 			
+			$pfund_is_edit_new_campaign;
+	require_once( ABSPATH . 'wp-admin/includes/file.php' );
+	require_once( ABSPATH . 'wp-admin/includes/image.php' );
+	require_once( ABSPATH . 'wp-admin/includes/media.php');
+
+	$options = get_option( 'pfund_options' );
+	if ( ! _pfund_current_user_can_create( $options ) ) {
+		return;
+	}
+
+	if ( $update_type == 'user-login' ) {
+		$campaign_fields = array();
+	} else {
+		$campaign_fields = array(
+			'post_name' => strip_tags( $_REQUEST['pfund-camp-location'] ),
+			'post_title' => strip_tags( $_REQUEST['pfund-camp-title'] )
+		);
+	}
+
+	if ( $update_type == 'update' || $update_type == 'user-login' ) {
+		if ( $post->post_type == 'teamcampaigns' ) {
+			if ( _pfund_is_edit_new_campaign() ) {
+				$campaign = _pfund_get_new_campaign();
+				$campaign_id = $campaign->ID;
+				$current_status = $campaign->post_status;
+			} else {
+				return;
+			}
+		} else {
+			$campaign_id = $_REQUEST['pfund_campaign_id'];
+			$campaign = get_post( $campaign_id );
+			$current_status = $campaign->post_status;
+		}
+	} else {
+		$current_status = '';
+	}
+	$status = _pfund_determine_campaign_status( $current_status );
+	if ( $status != 'publish' ) {
+		$campaign_fields['post_status'] = $status;
+	}
+
+	if ( $update_type == 'add') {
+		$campaign_fields['post_type'] = 'teamcampaigns';
+		$slug_id=$_POST['cause-slug'];
+		$campaign_id = wp_insert_post( $campaign_fields );
+		update_post_meta($campaign_id, '_pfund_cause_id', $slug_id );
+		$pfund_is_edit_new_campaign = true;
+		$update_title = esc_attr__( 'Team Campaign added', 'pfund');
+        if ( $status == 'pending' && is_user_logged_in() ) {
+            $update_message = __( 'Your Team campaign has been created and submitted for approval.  Once your campaign has been approved you will receive an email notifying you.', 'pfund' );
+        } else {
+            $update_message = __( 'Your Team campaign has been created. %s','pfund' );
+        }
+} else {
+		$campaign_fields['ID'] = $campaign_id;
+		if ( $status != 'publish' ) {
+			$campaign_fields['post_status'] = $status;
+		}
+		wp_update_post( $campaign_fields );
+		$update_title = esc_attr__( 'Team Campaign updated', 'pfund' );
+		if ( $status == 'publish' ) {
+			$update_message = __( 'Your Team campaign has been updated and is available for public viewing at <a href="%s">%s</a>.', 'pfund' );            
+		} else if ( $status == 'pending' && is_user_logged_in() ) {
+			$update_message = __( 'Your Team campaign has been updated and submitted for approval.  Once your Team campaign has been approved you will receive an email notifying you.', 'pfund' );
+		} else {			
+			$update_message = __( 'Your Team campaign has been updated.  %s', 'pfund' );			
+		}
+}
+	if ( $update_type != 'user-login' ) {
+		pfund_save_campaign_fields( $campaign_id );
+	}
+	
+	if ($pfund_is_edit_new_campaign) {
+		$pfund_new_campaign = get_post( $campaign_id );
+	}
+	
+	$additional_content = '';
+	if ( $status == 'publish' || ( $status == 'pending' && is_user_logged_in() ) ) {
+        if ( $status == 'publish' ) {
+			wp_publish_post( $campaign_id );		
+            $camp_url = get_permalink( $campaign_id );
+			if ( $update_type == 'add' || $update_type == 'user-login' ) {
+                $added_parms = array(
+                    'pfund_action' => 'teamcampaigns-created',
+                    'n' => 	wp_create_nonce( 'pfund-campaign-created'.$campaign_id ),
+                );
+                $camp_url .= '?'. http_build_query( $added_parms );
+				wp_safe_redirect( $camp_url );
+                return;
+            }
+        } else if ( $status == 'pending' && is_user_logged_in() ) {			
+            $camp_url = trailingslashit( get_option( 'siteurl' ) ).trailingslashit( $options['campaign_slug'] ).$campaign_id;           
+        }
+        $update_content = sprintf( $update_message, $camp_url, $camp_url );
+	} else {
+		$previewparms = array(
+			'pfund_action' => 'user-login',
+			'n' => 	wp_create_nonce( 'pfund-user-login'.$campaign_id ),
+			'pfund_campaign_id' =>$campaign_id
+		);
+		$preview_url = get_permalink( $post->ID ) . '?'. http_build_query( $previewparms );
+		$login_link = wp_login_url( $preview_url );
+		if ( $options['allow_registration'] ) {
+			$update_message = sprintf( $update_message,
+					__( 'To make this campaign available for others to view, please <a id="pfund-login-link" href="%s">Login</a> or <a id="pfund-register-link" href="#">Register</a>.', 'pfund' ) );
+			$additional_content = '<div id="pfund-register-dialog" style="display:none;" title="'.esc_attr__( 'Register','pfund' ).'">';
+			$additional_content .= '<form name="pfund_create_account_form" id="pfund-create-account-form" action="'.PFUND_URL.'register-user.php" method="post">';
+			$additional_content .= '<ul class="pfund-list">';
+			$additional_content .= _pfund_generate_input_field( 
+					'pfund-register-username',
+					__( 'Username', 'pfund' ),
+					'pfund_user_login',
+					'validate[required,length[0,60]]' );
+			$mask_password = '<div class="pfund-field-desc"><small><a id="pfund-mask-pass" href="#">'.__( 'Mask password', 'pfund' ).'</a></small></div>';
+			$additional_content .= _pfund_generate_input_field( 
+					'pfund-register-pass', __( 'Password', 'pfund' ),
+					'pfund_user_pass',
+					'validate[required,length[0,20]]',
+					$mask_password );
+			$additional_content .= _pfund_generate_input_field(
+					'pfund-register-email',
+					__( 'Email', 'pfund' ),
+					'pfund_user_email',
+					'validate[required,custom[email],length[0,100]]' );
+			$additional_content .= _pfund_generate_input_field(
+					'pfund-register-fname',
+					__( 'First Name', 'pfund' ),
+					'pfund_user_first_name',
+					'validate[required,length[0,100]]' );
+			$additional_content .= _pfund_generate_input_field( 
+					'pfund-register-lname',
+					__( 'Last Name', 'pfund' ),
+					'pfund_user_last_name',
+					'validate[required,length[0,100]]' );
+			$additional_content .= '</form>';
+			$additional_content .= '<form name="pfund_login_form" id="pfund-login-form" action="'.wp_login_url().'" method="post">';
+			$additional_content .= '<input type="hidden" name="log" id="pfund-user-login">';
+			$additional_content .= '<input type="hidden" name="pwd" id="pfund-user-pass">';
+			$additional_content .= '<input type="hidden" name="redirect_to" value="'.$preview_url.'">';
+			$additional_content .= '</ul">';
+			$additional_content .= '</form>';
+			$additional_content .= '</div>';
+		} else {
+			$update_message = sprintf( $update_message,
+					__( 'To make this campaign available for others to view, please <a id="pfund-login-link" href="%s">Login</a>.', 'pfund' ) );
+		}
+		$update_content = sprintf( $update_message, $login_link );
+	}
+	_pfund_set_update_message( $update_title, $update_content. $additional_content );
+	
+}
+/**/ 
+ 
 function _pfund_save_camp( $post, $update_type = 'add' ) {
+	
 	global $pfund_new_campaign, 			
 			$pfund_is_edit_new_campaign;
 	require_once( ABSPATH . 'wp-admin/includes/file.php' );
@@ -1422,7 +2039,6 @@ function _pfund_save_camp( $post, $update_type = 'add' ) {
 			'post_title' => strip_tags( $_REQUEST['pfund-camp-title'] )
 		);
 	}
-
 	if ( $update_type == 'update' || $update_type == 'user-login' ) {
 		if ( $post->post_type == 'pfund_cause' ) {
 			if ( _pfund_is_edit_new_campaign() ) {
@@ -1449,6 +2065,7 @@ function _pfund_save_camp( $post, $update_type = 'add' ) {
 		$campaign_fields['post_type'] = 'pfund_campaign';
 		$campaign_id = wp_insert_post( $campaign_fields );
 		update_post_meta( $campaign_id, '_pfund_cause_id', $post->ID );
+		//update_post_meta( $campaign_id, 'team_campaigns', $_REQUEST['teamcampaigns'] );
 		$pfund_is_edit_new_campaign = true;
 		$update_title = esc_attr__( 'Campaign added', 'pfund');
         if ( $status == 'pending' && is_user_logged_in() ) {
@@ -1478,7 +2095,6 @@ function _pfund_save_camp( $post, $update_type = 'add' ) {
 	if ($pfund_is_edit_new_campaign) {
 		$pfund_new_campaign = get_post( $campaign_id );
 	}
-	
 	$additional_content = '';
 	if ( $status == 'publish' || ( $status == 'pending' && is_user_logged_in() ) ) {
         if ( $status == 'publish' ) {
@@ -1601,9 +2217,21 @@ function _pfund_update_giver_tally( $campaign_id ) {
  * alongside the update message.
  */
 function _pfund_set_update_message( $update_title, $update_content, $additional_content = '' ) {
+	
     global $pfund_update_message; 
     $pfund_update_message = '<div id="pfund-update-dialog" style="display:none;" title="'.$update_title.'">';
 	$pfund_update_message .= '<div>'.$update_content.'</div></div>';
 	$pfund_update_message .= $additional_content;
+	
 }
+
+function _pfund_set_update_message1( $update_title, $update_content, $additional_content = '' ) {
+	global $pfund_update_message; 
+    $pfund_update_message = '<div id="pfund-update-dialog" style="display:none;" title="'.$update_title.'">';
+	$pfund_update_message .= '<div>'.$update_content.'</div></div>';
+	$pfund_update_message .= $additional_content;
+	echo $pfund_update_message;
+	
+}
+
 ?>

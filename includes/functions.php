@@ -170,9 +170,15 @@ function pfund_force_ssl_for_campaign_pages() {
  */
 function pfund_handle_content( $content ) {
 	global $post, $pfund_update_message;
+	if ( $post->post_type == 'teamcampaigns' ) {
+		$causeid = get_post_meta( $post->ID, '_pfund_cause_id', true ) ;
+		$cause = get_post( $causeid );
+		return $cause->post_content.$pfund_update_message;
+	}
 	if( $post->ID == null || ! pfund_is_pfund_post() ) {
 		return $content;
-	} else if ( $post->post_type == 'pfund_campaign' ) {
+	} 
+	else if ( $post->post_type == 'pfund_campaign' ) {
 		$causeid = get_post_meta( $post->ID, '_pfund_cause_id', true ) ;
 		$cause = get_post( $causeid );
 		return $cause->post_content.$pfund_update_message;
@@ -340,7 +346,9 @@ function pfund_process_authorize_net() {
  * @param string $default_goal default goal for campaign.  Defaults to empty.
  * @return string The HTML for the input fields.
  */
-function pfund_render_fields( $postid, $campaign_title, $editing_campaign = true, $default_goal = '' ) {
+ 
+ /**/
+function pfund_render_fields1($postid, $campaign_title, $editing_campaign = true, $default_goal = ''){
 	global $current_user, $post;
 	$options = get_option( 'pfund_options' );
 	$inputfields = array();
@@ -406,6 +414,213 @@ function pfund_render_fields( $postid, $campaign_title, $editing_campaign = true
 		);
 	}
 	if ( empty( $inputfields['pfund-gift-goal']['value'] ) ) {
+		
+		$inputfields['pfund-gift-goal']['value'] = $default_goal;
+	}
+
+	if ( ! isset( $inputfields['pfund-gift-tally'] ) ) {
+		$current_tally = get_post_meta( $postid, '_pfund_gift-tally', true );
+		$inputfields['pfund-gift-tally'] = array(
+			'field' => $options['fields']['gift-tally'],
+			'value' => $current_tally
+		);
+	}
+
+	uasort( $inputfields, '_pfund_sort_fields' );
+	$hidden_inputs = '';
+	$field_idx = 0;
+	foreach( $inputfields as $tag => $field_data ) {
+		$field = $field_data['field'];
+		$value = pfund_get_value( $field_data, 'value' );
+
+		$field_options = array(			
+			'name' => $tag,
+			'desc' => pfund_get_value( $field, 'desc' ),
+			'label' => pfund_get_value( $field, 'label' ),
+			'value' => $value,
+			'render_type' => $render_type,
+			'field_count' => $field_idx,
+			'required' => pfund_get_value( $field, 'required', false )
+		);
+		if ( isset( $field_data['attrs'] ) ) {
+			$field_options['attrs']= shortcode_parse_atts( $field_data['attrs'] );
+		}
+		switch ( $field['type'] ) {
+			case 'camp_title':
+				if ( ! is_admin() ) {
+					$field_options['value'] = $campaign_title;
+					$content .= _pfund_render_text_field( $field_options );					
+					$field_idx++;
+				}
+				break;
+			case 'camp_location':
+				if ( ! is_admin() ) {
+					if ( $editing_campaign ) {
+						require_once( ABSPATH . 'wp-admin/includes/post.php' );
+						list( $permalink, $post_name ) = get_sample_permalink( $postid );
+					} else {
+						$post_name = '';
+					}
+					$field_options['custom_validation'] = 'ajax[pfundSlug]';
+					$field_options['value'] = $post_name;
+					$field_options['pre_input'] = trailingslashit( get_option( 'siteurl' ) ).trailingslashit( $options['teamcampaigns_slug'] );					
+					$content .= _pfund_render_text_field( $field_options );
+					$field_idx++;
+				}
+				break;
+			case 'fixed':
+			case 'gift_tally':
+				if ( is_admin() ) {
+					$content .= _pfund_render_text_field( $field_options );
+				} else if ( $field['type'] == 'fixed' ) {
+					$attr = shortcode_parse_atts( $field_data['attrs'] );
+					$hidden_inputs .= '	<input type="hidden" name="'.$tag.'" value="'.$attr["value"].'"/>';
+				}
+				break;
+			case 'end_date':
+			case 'date':
+				$field_options['class'] = 'pfund-date';
+				$field_options['value'] = pfund_format_date( 
+						$field_options['value'],  
+						$options['date_format']
+				);
+				$content .= _pfund_render_text_field( $field_options );
+				$field_idx++;
+				break;
+			case 'giver_tally':
+				if ( is_admin() ) {
+					$content .= _pfund_render_text_field( $field_options );
+					$field_idx++;					
+				}
+				break;
+			case 'user_goal':
+				$field_options['custom_validation'] = 'custom[onlyNumber]';
+				$content .= _pfund_render_text_field( $field_options );
+				$field_idx++;
+				break;
+			case 'text':
+				$content .= _pfund_render_text_field( $field_options );
+				$field_idx++;
+				break;
+			case 'textarea':
+                $field_options['class'] = 'pfund-textarea';
+                $field_options = _pfund_add_validation_class($field_options);
+				$field_content = '<textarea class="'.$field_options['class'].'" id="'.$tag.'" name="'.$tag.'" rows="10" cols="50" type="textarea">'.$value.'</textarea>';
+				$content .= pfund_render_field_list_item( $field_content, $field_options);
+				$field_idx++;
+				break;
+			case 'image':
+                if ( ( isset( $field_options['required'] ) && $field_options['required'] ) ) {                
+                    $field_options['custom_validation'] = 'funcCall[requiredFile]';
+                }
+				$content .= _pfund_render_image_field( $field_options );
+				$field_idx++;
+				break;
+			case 'select':
+				$field_content = pfund_render_select_field( $field['data'], $tag, $value );
+				$content .= pfund_render_field_list_item( $field_content, $field_options );
+				$field_idx++;
+				break;
+			case 'user_email':
+				if ( empty ( $value ) && !is_admin() ) {
+					$value = $current_user->user_email;
+					$field_options['value'] = $value;
+				}
+				$field_options['custom_validation'] = 'custom[email]';
+				$content .= _pfund_render_text_field( $field_options );
+				$field_idx++;
+				break;
+			case 'user_displayname':
+				if ( empty ($value) && !is_admin() ) {
+					$value = $current_user->display_name;
+					$field_options['value'] = $value;
+				}				
+				$content .= _pfund_render_text_field( $field_options );
+				$field_idx++;
+				break;
+			default:
+				$content .= apply_filters( 'pfund_'.$field['type'].'_input', $field_options );
+				$field_idx++;
+		}
+	}
+	if ( ! is_admin() ) {
+		$content .= '</ul>';
+	}
+	$content .= $hidden_inputs;
+	//print_r($content);die();
+	return $content;
+
+
+} 
+ /**/
+function pfund_render_fields( $postid, $campaign_title, $editing_campaign = true, $default_goal = '' ) {
+	global $current_user, $post;
+	$options = get_option( 'pfund_options' );
+	$inputfields = array();
+	$matches = array();
+	$result = preg_match_all( '/'.get_shortcode_regex().'/s', pfund_handle_content( $post->post_content ), $matches );
+
+	$tags = $matches[2];
+	$attrs = $matches[3];
+	if ( is_admin() ) {
+		$render_type = 'admin';
+		if ( isset( $options['fields'] ) ) {
+			foreach ( $options['fields'] as $field_id => $field ) {
+				$field_value = get_post_meta( $postid, '_pfund_'.$field_id, true );
+				$inputfields['pfund-'.$field_id] = array(
+					'field' => $field,
+					'value' => $field_value
+				);
+			}
+			$content_idx = array_search('pfund-'.$field_id, $tags);
+			if ( $content_idx !== false ){
+				$inputfields['pfund-'.$field_id]['attrs'] = $attrs[$content_idx];
+			}
+		}
+		$content = '';
+	} else {
+		$render_type = 'user';
+		get_currentuserinfo();
+		$inputfields = array();
+		foreach( $tags as $idx => $tag ) {
+			if ( $tag == 'pfund-days-left' ) {
+				$tag = 'pfund-end-date';
+			}
+			$field_id = substr( $tag, 6 );			
+			$field_value = get_post_meta( $postid, '_pfund_'.$field_id, true );
+			if ( isset( $options['fields'][$field_id] ) ) {
+				$inputfields[$tag] = array(
+					'field' => $options['fields'][$field_id],
+					'attrs' => $attrs[$idx],
+					'value' => $field_value
+				);
+			}
+		}
+		$content = '<ul class="pfund-list">';
+	}
+
+	if ( ! isset( $inputfields['pfund-camp-title'] ) ) {
+		$inputfields['pfund-camp-title'] = array(
+			'field' => $options['fields']['camp-title'],
+			'value' => $campaign_title
+		);
+	}
+
+	if ( ! isset( $inputfields['pfund-camp-location'] ) ) {
+		$inputfields['pfund-camp-location'] = array(
+			'field' => $options['fields']['camp-location']
+		);
+	}
+
+	if ( ! isset( $inputfields['pfund-gift-goal'] ) ) {
+		$current_goal = get_post_meta( $postid, '_pfund_gift-goal', true );
+		$inputfields['pfund-gift-goal'] = array(
+			'field' => $options['fields']['gift-goal'],
+			'value' => $current_goal
+		);
+	}
+	if ( empty( $inputfields['pfund-gift-goal']['value'] ) ) {
+		
 		$inputfields['pfund-gift-goal']['value'] = $default_goal;
 	}
 
@@ -537,7 +752,8 @@ function pfund_render_fields( $postid, $campaign_title, $editing_campaign = true
 	if ( ! is_admin() ) {
 		$content .= '</ul>';
 	}
-	$content .= $hidden_inputs;
+	$content .= $hidden_inputs;	
+
 	return $content;
 
 }

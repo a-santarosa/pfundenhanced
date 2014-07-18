@@ -31,6 +31,8 @@ if ( is_admin() ) {
 	add_action( 'admin_init', 'pfund_admin_init' );
 
 	add_action( 'admin_menu', 'pfund_admin_setup' );
+	add_action( 'admin_menu', 'pfund_admin_setup1' );
+	
 
 	add_action( 'admin_print_styles-post.php', 'pfund_admin_css' );
 
@@ -41,6 +43,10 @@ if ( is_admin() ) {
 	add_filter( 'manage_pfund_campaign_posts_columns', 'pfund_campaign_posts_columns' );
 
 	add_action( 'manage_pfund_campaign_posts_custom_column', 'pfund_campaign_posts_custom_column', 10, 2 );
+	
+	add_filter( 'manage_teamcampaigns_posts_columns', 'teamcampaigns_posts_columns' );
+
+	add_action( 'manage_teamcampaigns_posts_custom_column', 'teamcampaigns_posts_custom_column', 10, 2 );
 
 	add_filter( 'plugin_action_links', 'pfund_plugin_action_links', 10, 2 );
 

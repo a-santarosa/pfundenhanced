@@ -95,6 +95,7 @@ function pfund_admin_init() {
 			'value' => $options['campaign_slug']
 		)
 	);
+	
 	add_settings_field(
 		'pfund_campaign_listing',
 		__( 'Use Campaign Listing Page', 'pfund' ),
@@ -107,6 +108,7 @@ function pfund_admin_init() {
 			'value' => $options['campaign_listing']
 		)
 	);
+	
 	add_settings_field(
 		'pfund_cause_slug',
 		__( 'Cause Slug', 'pfund' ),
@@ -130,7 +132,29 @@ function pfund_admin_init() {
 			'value' => $options['cause_listing']
 		)
 	);
-
+	add_settings_field(
+		'pfund_teamcampaigns_slug',
+		__( 'Team Campaign Slug', 'pfund' ),
+		'pfund_option_text_field',
+		'pfund',
+		'pfund_main_options',
+		array(
+			'name' => 'teamcampaigns_slug',
+			'value' => $options['teamcampaigns_slug']
+		)
+	);
+	/*add_settings_field(
+		'pfund_team_listing',
+		__( 'Use Team Listing Page', 'pfund' ),
+		'pfund_option_text_field',
+		'pfund',
+		'pfund_main_options',
+		array(
+			'name' => 'team_listing',
+			'type' => 'checkbox',
+			'value' => $options['team_listing']
+		)
+	);*/
 	add_settings_field(
 		'pfund_currency_symbol',
 		__( 'Currency Symbol', 'pfund' ),
@@ -491,6 +515,35 @@ function pfund_admin_setup() {
 	add_meta_box( 'pfund-cause-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_cause_meta', 'pfund_cause', 'normal', 'high' );
     add_meta_box( 'pfund-reset-author', __( 'Reset Author', 'pfund'), 'pfund_reset_author', 'pfund_campaign', 'side');
 }
+function pfund_admin_setup1() {
+	//$menu = add_options_page( __( 'Personal Fundraiser Settings', 'pfund' ), __( 'Personal Fundraiser', 'pfund' ),
+			//'manage_options', 'personal-fundraiser-settings', 'pfund_options_page');
+// for individual meta box
+add_meta_box( 'pfund-campaign-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_campaign_meta', 'teamcampaigns', 'normal', 'high' );
+add_meta_box( 'pfund-shortcode-list', __( 'Personal Fundraising shortcodes', 'pfund' ), 'pfund_shortcode_list', 'teamcampaigns', 'normal', 'high' );
+	add_meta_box( 'commentsdiv', __( 'Donation Listing', 'pfund' ), 'pfund_transaction_listing', 'individualcampaigns', 'normal', 'high' );
+    add_meta_box( 'pfund-add-donation-fields', __( 'Add Donation', 'pfund' ), 'pfund_add_donation_box', 'teamcampaigns', 'side');
+  add_meta_box( 'pfund-cause-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_cause_meta', 'individualcampaigns', 'normal', 'high' );
+   add_meta_box( 'pfund-reset-author', __( 'Reset Author', 'pfund'), 'pfund_reset_author', 'individualcampaigns', 'side');
+   add_meta_box( 'pfund-reset-author', __( 'Team Campaigns', 'pfund'), 'pfund_team_campaigns', 'pfund_campaign', 'side');
+
+}
+
+function pfund_team_campaigns($post)
+{ 
+$value = get_post_meta( $post->ID, 'team_campaigns', true );
+global $wpdb;
+$table_name = $wpdb->prefix . "posts"; 
+$sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as a INNER JOIN `wp_postmeta` as b WHERE  a.`ID` = b.`post_id` AND `post_type` = 'teamcampaigns' AND `post_status`='publish'");
+echo '<select name="team_campaigns"><option>Select</option>';
+foreach($sql as $data)
+{
+	if($data->post_title!='sample-team'){
+?>
+<option value="<?php echo $data->post_title;?>" <?php if($value==$data->post_title){echo "selected='selected'";}?>><?php echo $data->post_title;?></option>
+
+<?php }}?></select>
+<?php }
 
 /**
  * Display the meta fields for the specified campaign.
@@ -531,11 +584,68 @@ function pfund_campaign_meta( $post ) {
  * @param array $columns The currently defined columns.
  * @return array The list of columns to display.
  */
+function teamcampaigns_posts_columns( $columns ) {
+   // $columns['cause'] = __( 'Cause', 'pfund' );
+	$columns['user'] = __( 'User', 'pfund' );
+	// $columns['goal'] = __( 'Goal', 'pfund' );
+	$columns['team'] = __( 'Team Members', 'pfund' );
+	 $columns['tally'] = __( 'Total Raised', 'pfund' );
+	
+    return $columns;
+}
+
+function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
+	switch ( $column_name ) {
+			
+			case 'user':
+			global $post;
+			$author = get_userdata( $post->post_author );
+			if ( $author ) {
+				echo strip_tags( $author->display_name );
+			}
+			break;
+			
+			case 'team':
+			global $wpdb;
+			$table_name = $wpdb->prefix . "posts"; 
+			 $value = get_the_title($campaign_id);
+			 $data = $wpdb->get_results("SELECT DISTINCT(`post_title`),meta_key FROM ".$table_name." a INNER JOIN `wp_postmeta` b ON a.ID = b.post_id WHERE post_type = 'pfund_campaign' AND meta_value = '".$value."'");
+			foreach($data as $s)
+			{
+			echo $s->post_title;
+			echo '<br>';
+			}
+			break;
+
+			case 'tally':
+			global $wpdb;
+			$table_name = $wpdb->prefix . "postmeta"; 
+			$table_name1 = $wpdb->prefix . "posts"; 
+			 $value = get_the_title($campaign_id);
+			$sql = $wpdb->get_results("SELECT DISTINCT(post_id) FROM ".$table_name." a INNER JOIN ".$table_name1." b ON b.ID = a.post_id WHERE post_type = 'pfund_campaign' AND meta_value='".$value."'");
+			//echo "SELECT DISTINCT(post_id) FROM `wp_postmeta` a INNER JOIN `wp_posts` b ON b.ID = a.post_id WHERE post_type = 'pfund_campaign' AND meta_value='".$value."'";
+			 $sql3 = 0;
+			foreach($sql as $p)
+			{
+			 $sql2 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
+			  $sql3 =$sql3 + $sql2 ; 
+			}
+				echo $sql3;
+			 //print_r($sql);
+			 //$sql2 = $wpdb->get_results("SELECT DISTINCT(meta_value) FROM `wp_postmeta` WHERE post_id IN($sql) AND meta_key = '_pfund_gift-tally'");
+			// print_r($sql2);
+			break;
+
+}
+		
+}
+
 function pfund_campaign_posts_columns( $columns ) {
     $columns['cause'] = __( 'Cause', 'pfund' );
 	$columns['user'] = __( 'User', 'pfund' );
 	$columns['goal'] = __( 'Goal', 'pfund' );
 	$columns['tally'] = __( 'Raised', 'pfund' );
+	$columns['team'] = __( 'Team', 'pfund' );
     return $columns;
 }
 
@@ -574,6 +684,9 @@ function pfund_campaign_posts_custom_column( $column_name, $campaign_id ) {
 		case 'tally':
 			echo get_post_meta( $campaign_id, '_pfund_gift-tally', true );
 			break;
+		case 'team':
+			echo get_post_meta( $campaign_id, 'team_campaigns', true );
+			break;	
 		case 'user':
 			global $post;
 			$author = get_userdata( $post->post_author );
@@ -628,6 +741,7 @@ function pfund_cause_meta( $post ) {
 			<label for="pfund-cause-description"><?php _e( 'Cause Description', 'pfund' );?></label>
 			<textarea class="pfund-textarea" id="pfund-cause-description" name="pfund-cause-description" rows="10" cols="50"><?php echo $cause_description;?></textarea>
 		</li>
+
 		<li>
 			<label for="pfund-cause-default-goal"><?php _e( 'Default Goal', 'pfund' );?></label>
 			<input type ="text" id="pfund-cause-default-goal" name="pfund-cause-default-goal" value="<?php echo $cause_default_goal;?>"/>
@@ -877,6 +991,14 @@ function pfund_post_updated_messages( $messages ) {
 				$messages['post'][1001] = __( 'Donation added.', 'pfund' );
 				$messages['post'][1002] = __( 'Author set to email address.', 'pfund');
 				break;
+			case 'teamcampaigns':
+				$messages['post'][1] = sprintf( __('Team Campaign updated. <a href="%s">View campaign</a>', 'pfund'), esc_url( get_permalink( $post->ID ) ) );
+				$messages['post'][4] = __( 'Team Campaign updated.', 'pfund' );
+				$messages['post'][6] = sprintf( __('Team Campaign published. <a href="%s">View campaign</a>', 'pfund'), esc_url( get_permalink( $post->ID ) ) );
+				$messages['post'][10] = sprintf( __('Team Campaign draft updated. <a target="_blank" href="%s">Preview campaign</a>', 'pfund'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post->ID) ) ) );
+				$messages['post'][1001] = __( 'Donation added.', 'pfund' );
+				$messages['post'][1002] = __( 'Author set to email address.', 'pfund');
+				break;
 		}
 	}
 	return $messages;
@@ -945,6 +1067,23 @@ function pfund_save_meta( $post_id, $post ) {
 			_pfund_save_cause_fields( $post_id );
 			break;
 		case 'pfund_campaign':
+			if ( isset ( $_REQUEST['pfund-add-donation'] ) ) {
+				_pfund_add_admin_donation( $post_id, $post );
+			} else if (isset ( $_REQUEST['pfund-reset-author'] ) ) {
+                _pfund_reset_author( $post_id, $post );
+            } else {
+                if ( isset ( $_REQUEST['pfund-cause-id'] ) ) {
+                    update_post_meta($post_id, '_pfund_cause_id', $_REQUEST['pfund-cause-id'] );
+                } 
+                update_post_meta($post_id, '_pfund_camp-location', $post->post_name );
+                update_post_meta($post_id, '_pfund_camp-title', $post->post_title );
+                pfund_save_campaign_fields( $post_id );
+            }         
+	case 'teamcampaigns':
+			if(isset($_REQUEST['team_campaigns']))
+			{
+			update_post_meta($post_id, 'team_campaigns', $_REQUEST['team_campaigns'] );
+			}
 			if ( isset ( $_REQUEST['pfund-add-donation'] ) ) {
 				_pfund_add_admin_donation( $post_id, $post );
 			} else if (isset ( $_REQUEST['pfund-reset-author'] ) ) {
