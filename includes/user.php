@@ -636,6 +636,9 @@ function pfund_edit() {
 	global $post, $current_user;
 	$current_user = wp_get_current_user();
 	/**/
+	if ( ! _pfund_current_user_can_create( ) ) {
+		return '';	
+	}
 	if ( $post->post_type == 'teamcampaigns' ) {
 		if( $post->post_type == 'teamcampaigns') {
 		$editing_campaign = _pfund_is_edit_new_campaign();
@@ -687,7 +690,7 @@ function pfund_edit() {
 		/**/
 		global $wpdb;
 		$table_name = $wpdb->prefix . "posts"; 
-        $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`),`id` FROM ".$table_name." WHERE `post_type` = 'pfund_cause'");
+        $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`),`id` FROM ".$table_name." WHERE `post_type` = 'pfund_cause' AND `post_status`='publish'");
 $return_form .= '<label for="cause-slug"><b>Select Cause</b><abbr title="required">*</abbr></label><select name="cause-slug"><option>Select Any One</option>';
 foreach($sql as $data)
 {
@@ -824,6 +827,7 @@ $table_name1 = $wpdb->prefix . "postmeta";
 $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE  a.`ID` = b.`post_id` AND `post_type` = 'teamcampaigns' AND `post_status`='publish'");
 
 
+$return_form .= '<label for="pfund-teamcampaigns" style=" font-weight: bold;margin-right: 5px;">Select Team <abbr title="required">*</abbr></label>';
 $return_form .= '<select name="team_campaigns"><option>Select Team</option>';
 foreach($sql as $data)
 {
@@ -2018,7 +2022,6 @@ function _pfund_save_teamcamp( $post, $update_type = 'add' ) {
 /**/ 
  
 function _pfund_save_camp( $post, $update_type = 'add' ) {
-	
 	global $pfund_new_campaign, 			
 			$pfund_is_edit_new_campaign;
 	require_once( ABSPATH . 'wp-admin/includes/file.php' );
@@ -2065,7 +2068,7 @@ function _pfund_save_camp( $post, $update_type = 'add' ) {
 		$campaign_fields['post_type'] = 'pfund_campaign';
 		$campaign_id = wp_insert_post( $campaign_fields );
 		update_post_meta( $campaign_id, '_pfund_cause_id', $post->ID );
-		//update_post_meta( $campaign_id, 'team_campaigns', $_REQUEST['teamcampaigns'] );
+		update_post_meta( $campaign_id, 'team_campaigns', $_POST['team_campaigns'] );
 		$pfund_is_edit_new_campaign = true;
 		$update_title = esc_attr__( 'Campaign added', 'pfund');
         if ( $status == 'pending' && is_user_logged_in() ) {

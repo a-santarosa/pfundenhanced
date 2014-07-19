@@ -529,7 +529,7 @@ $args = array(
 					 	'not_found_in_trash'  => 'No Team Campaigns found in trash.'
 					),
 	'supports'      =>	array( 'title', 'revisions' ),
-	'show_in_menu'  =>	'edit.php?post_type=pfund_campaign',
+	//'show_in_menu'  =>	'edit.php?post_type=pfund_campaign',
 	'map_meta_cap' => true,
 	'public'		    =>	true,
 	
@@ -537,7 +537,7 @@ $args = array(
 );
 register_post_type( 'Team Campaigns', $args );
 }
-add_action('admin_menu', 'mt_add_pages1');
+/*add_action('admin_menu', 'mt_add_pages1');
     function mt_add_pages1() {
      add_submenu_page('edit.php?post_type=pfund_campaign', __('Add New Team Campaigns','menu-test'),
 	  __('Add New Team Campaigns','menu-test'), 'manage_options', 'teamcampaigns', 'mt_settings_pages');
@@ -551,6 +551,6 @@ add_action('admin_menu', 'mt_add_pages1');
 
     <?php }
 
-    }
+    }*/
 
 ?>

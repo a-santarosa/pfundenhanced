@@ -18,6 +18,7 @@
 /**
  * Ajax call to process donation using Authorize.Net 
  */
+ 
 function pfund_auth_net_donation() {	
     $campaign_id = $_POST['post_id'];
     $gentime = $_POST['g'];    
@@ -125,6 +126,7 @@ function pfund_date_to_iso8601( $date, $format ) {
  */
 function pfund_determine_shortcode( $id, $type = '' ) {
 	$scode = '[pfund-'.$id;
+
 	if ( $type == 'fixed' ) {
 		$scode .= ' value="?"';
 	}
@@ -550,7 +552,6 @@ function pfund_render_fields1($postid, $campaign_title, $editing_campaign = true
 	//print_r($content);die();
 	return $content;
 
-
 } 
  /**/
 function pfund_render_fields( $postid, $campaign_title, $editing_campaign = true, $default_goal = '' ) {
@@ -908,6 +909,7 @@ function pfund_send_mandrill_email($email, $merge_vars, $subject, $config) {
             error_log( "Mandrill call returned an error.  The response was: " . print_r( $result, true ) );
         }
         return false;
+
     }
 }
 
@@ -1019,6 +1021,7 @@ function pfund_get_validation_js() {
         'nname' =>  'pfund_validate_required_file',
         'alertText' =>  __( '* This field is required', 'pfund' )
     );    
+
     $length_validation = array(
         'regex' => 'none',
         'alertText' =>  __( '*Between ', 'pfund' ),

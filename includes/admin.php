@@ -81,6 +81,8 @@ function pfund_admin_donation_added( $location ) {
  * Initialize administrator functionality.
  */
 function pfund_admin_init() {
+	wp_enqueue_style( 'pfund-user', pfund_determine_file_location('admin','css'),
+			array(), PFUND_VERSION );
 	$options = get_option( 'pfund_options' );	
 	register_setting( 'pfund_options', 'pfund_options' );
 	add_settings_section( 'pfund_main_options', __( 'Personal Fundraiser Options', 'pfund' ), 'pfund_main_section_text', 'pfund' );
@@ -505,9 +507,9 @@ function pfund_admin_js() {
  * Initialize admin
  */
 function pfund_admin_setup() {
-	$menu = add_options_page( __( 'Personal Fundraiser Settings', 'pfund' ), __( 'Personal Fundraiser', 'pfund' ),
-			'manage_options', 'personal-fundraiser-settings', 'pfund_options_page');
-	add_action( 'load-'.$menu, 'pfund_admin_js' );
+	//$menu = add_menu_page( __( 'Personal Fundraiser Settings', 'pfund' ), __( 'Personal Fundraiser', 'pfund' ),
+			//'manage_options', 'personal-fundraiser-settings', 'pfund_options_page');
+	//add_action( 'load-'.$menu, 'pfund_admin_js' );
 	add_meta_box( 'pfund-campaign-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_campaign_meta', 'pfund_campaign', 'normal', 'high' );
     add_meta_box( 'pfund-shortcode-list', __( 'Personal Fundraising shortcodes', 'pfund' ), 'pfund_shortcode_list', 'pfund_campaign', 'normal', 'high' );
 	add_meta_box( 'commentsdiv', __( 'Donation Listing', 'pfund' ), 'pfund_transaction_listing', 'pfund_campaign', 'normal', 'high' );
@@ -521,7 +523,7 @@ function pfund_admin_setup1() {
 // for individual meta box
 add_meta_box( 'pfund-campaign-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_campaign_meta', 'teamcampaigns', 'normal', 'high' );
 add_meta_box( 'pfund-shortcode-list', __( 'Personal Fundraising shortcodes', 'pfund' ), 'pfund_shortcode_list', 'teamcampaigns', 'normal', 'high' );
-	add_meta_box( 'commentsdiv', __( 'Donation Listing', 'pfund' ), 'pfund_transaction_listing', 'individualcampaigns', 'normal', 'high' );
+	add_meta_box( 'commentsdiv', __( 'Donation Listing', 'pfund' ), 'pfund_transaction_listing', 'teamcampaigns', 'normal', 'high' );
     add_meta_box( 'pfund-add-donation-fields', __( 'Add Donation', 'pfund' ), 'pfund_add_donation_box', 'teamcampaigns', 'side');
   add_meta_box( 'pfund-cause-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_cause_meta', 'individualcampaigns', 'normal', 'high' );
    add_meta_box( 'pfund-reset-author', __( 'Reset Author', 'pfund'), 'pfund_reset_author', 'individualcampaigns', 'side');
@@ -529,6 +531,56 @@ add_meta_box( 'pfund-shortcode-list', __( 'Personal Fundraising shortcodes', 'pf
 
 }
 
+/**/
+add_action("admin_menu", "createMyMenus");
+
+function createMyMenus() {
+  	add_menu_page("Fundraising", "Fundraising", 0, "fundraising-slug", "myMenuPageFunction");
+	
+	add_submenu_page('fundraising-slug', 'Causes', 'Causes', 'edit_pages' , 'edit.php?post_type=pfund_cause','funcause');
+	add_submenu_page('fundraising-slug', 'Add New Causes', 'Add New Causes', 'edit_pages' ,'post-new.php?post_type=pfund_cause');
+	add_submenu_page('fundraising-slug', 'Campaigns', 'Campaigns', 'edit_pages' , 'edit.php?post_type=pfund_campaign','funcampaign');
+	add_submenu_page('fundraising-slug', 'Add New Campaigns', 'Add New Campaigns', 'edit_pages' , 'post-new.php?post_type=pfund_campaign');
+	add_submenu_page('fundraising-slug', 'Team Campaigns', 'Team Campaigns', 'edit_pages' , 'edit.php?post_type=teamcampaigns','funteamcampaigns');
+	add_submenu_page('fundraising-slug', 'Add New Team Campaigns', 'Add New Team Campaigns','edit_pages' , 'post-new.php?post_type=teamcampaigns');
+	add_submenu_page("fundraising-slug", __( 'Personal Fundraiser Settings', 'pfund' ), __( 'Options', 'pfund' ),
+			'manage_options', 'personal-fundraiser-settings', 'pfund_options_page');
+}
+function wpse28782_remove_menu_items() {
+        remove_menu_page( 'edit.php?post_type=pfund_cause' );
+		remove_menu_page( 'edit.php?post_type=pfund_campaign' );
+		remove_menu_page( 'edit.php?post_type=teamcampaigns' );
+}
+add_action( 'admin_menu', 'wpse28782_remove_menu_items' );
+function funcause(){
+	?>
+    <script type="text/javascript">
+    window.location.href="edit.php?post_type=pfund_cause";
+    </script>
+    <?php 
+	}	
+function funcause1(){?>
+	<script type="text/javascript">
+    window.location.href="post-new.php?post_type=pfund_cause";
+    </script><?php }	
+	function funcampaign(){
+	?>
+    <script type="text/javascript">
+    window.location.href="edit.php?post_type=pfund_campaign";
+    </script>
+    <?php 
+	}	
+function funteamcampaigns(){?>
+	<script type="text/javascript">
+    window.location.href="edit.php?post_type=teamcampaigns";
+    </script><?php }	
+function myMenuPageFunction(){
+	?>
+	<script type="text/javascript">
+    window.location.href="edit.php?post_type=pfund_cause";
+    </script><?php }	
+	
+/**/
 function pfund_team_campaigns($post)
 { 
 $value = get_post_meta( $post->ID, 'team_campaigns', true );
