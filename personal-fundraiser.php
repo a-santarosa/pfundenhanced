@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Personal Fundraiser Enhanced
-Plugin URI: hhttps://github.com/goalsquid/pfundenhanced
+Plugin URI: https://github.com/goalsquid/pfundenhanced
 Description: Fundraising for individuals and teams.
 Version: 0.8.4
 Author: Guhru Studio
