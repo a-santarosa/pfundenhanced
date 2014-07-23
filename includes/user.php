@@ -275,6 +275,53 @@ function pfund_comments() {
 	if ( $post->post_status != 'publish' ) {
 		return '';
 	}
+	if($post->post_type=='teamcampaigns'){$comment_list = get_comments( array( 'post_id'=>$post->ID ) );
+	$return_content = '<ul class="pfund-comments">';
+	foreach ( $comment_list as $comment ) {
+		$return_content .= '<li class="pfund-comment" id="comment-'.$comment->comment_ID.'">';
+		$return_content .= '<div class="comment-author vcard">';					
+		if ( function_exists( 'get_avatar' ) ) {
+			$return_content .= get_avatar( $comment, 32 );
+		}
+		$return_content .= '<cite class="fn">';
+		$return_content .= get_comment_author_link( $comment->comment_ID );
+		$return_content .= '</cite>';
+		$return_content .= '</div>';
+		$return_content .= $comment->comment_content;
+		$return_content .= '</li>';
+	}
+	
+	$return_content .= '</ul>';
+	
+	if ( comments_open() ) {
+		$return_content .= '<div id="pfund-comment-resp">';
+		$return_content .= '<h3>'.__( 'Post a Comment', 'pfund' ).'</h3>';
+
+		if ( get_option( 'comment_registration' ) && !is_user_logged_in() ) {
+			$return_content .= '<p>';
+			
+			$return_content .= sprintf(
+				__( 'You must be <a href="%s">logged in</a> to post a comment.', 'pfund' ),
+				wp_login_url( get_permalink() )
+			);
+			
+		}  else {
+			$return_content .= '<form action="'.get_option( 'siteurl' ) .'/wp-comments-post.php" method="post" id="commentform">';
+			if ( ! is_user_logged_in() ) {
+				$return_content .= '<p><input type="text" name="author" id="author" size="22" tabindex="1"/>';
+				$return_content .= '<label for="author"><small>'.__( 'Name', 'pfund' ).'</small></label></p>';
+				$return_content .= '<p><input type="text" name="email" id="email" size="22" tabindex="2" />';
+				$return_content .= '<label for="email"><small>'.__( 'Mail (will not be published)', 'pfund' ).'</small></label></p>';
+			}
+			$return_content .= '<p><textarea name="comment" id="comment" cols="58" rows="10" tabindex="4"></textarea></p>';
+			$return_content .= '<p><input name="submit" type="submit" id="submit" tabindex="5" value="'.esc_attr__( 'Submit Comment', 'pfund').'" />';
+			$return_content .= get_comment_id_fields();
+			$return_content .= '</p>';
+			$return_content .= '</form>';
+		}
+		$return_content .= '</div>';
+	}
+	return $return_content;}
 	$comment_list = get_comments( array( 'post_id'=>$post->ID ) );
 	$return_content = '<ul class="pfund-comments">';
 	foreach ( $comment_list as $comment ) {
@@ -660,13 +707,13 @@ function pfund_edit() {
 	}
 
 	$wait_title = esc_attr__( 'Please wait', 'pfund' );
-	if ( ($editing_campaign) && $post->post_name=='sample-team'  ) {
+	if ( ($editing_campaign) && $post->post_name=='team-creation'  ) {
 		$dialog_title = esc_attr__( 'Edit Campaign', 'pfund' );
 		$dialog_desc = esc_html__( 'Change your campaign by editing the information below.', 'pfund' );
 		$wait_desc = esc_html__( 'Please wait while your campaign is updated.', 'pfund' );
 		$dialog_id = 'pfund-edit-dialog';
 	} else {
-		if($post->post_name=='sample-team'){
+		if($post->post_name=='team-creation'){
 		$dialog_title = esc_attr__( 'Create Team Campaign', 'pfund' );
 		$dialog_desc = esc_html__( 'Please fill in the following information to create your Team campaign.', 'pfund' );
 		$wait_desc = esc_html__( 'Please wait while your Team campaign is created.', 'pfund' );
@@ -681,7 +728,7 @@ function pfund_edit() {
 	$return_form .= '<div>'.$dialog_desc.'</div>';
 	$return_form .= '<form enctype="multipart/form-data" action="" method="post" name="pfund_form" id="pfund-form">';
 
-	if (($post->ID !='') && ($post->post_name!='sample-team')) {
+	if (($post->ID !='') && ($post->post_name!='team-creation')) {
 			
 		$return_form .= '	<input type="hidden" name="pfund_action" value="update-teamcampaigns"/>';
 		$return_form .= '	<input id="pfund-teamcampaigns-id" type="hidden" name="pfund_teamcampaigns_id" value="'.$post->ID.'"/>';
@@ -831,7 +878,7 @@ $return_form .= '<label for="pfund-teamcampaigns" style=" font-weight: bold;marg
 $return_form .= '<select name="team_campaigns"><option>Select Team</option>';
 foreach($sql as $data)
 {
-	if($data->post_title!='sample-team'){
+	if($data->post_title!='team-creation'){
 $return_form .= '<option value="'. $data->post_title.'" ' . (($value == $data->post_title) ? "selected" : "selected").'>'.$data->post_title.'</option>';	
 
 	}
@@ -1259,6 +1306,7 @@ function pfund_setup_shortcodes() {
 	add_shortcode( 'pfund-campaign-list', 'pfund_campaign_list' );
 	add_shortcode( 'pfund-campaign-permalink', 'pfund_campaign_permalink');
 	add_shortcode( 'pfund-cause-list', 'pfund_cause_list' );
+
 	add_shortcode( 'pfund-team-list', 'pfund_team_list' );
 	add_shortcode( 'pfund-comments', 'pfund_comments' );
 	add_shortcode( 'pfund-days-left', 'pfund_days_left' );

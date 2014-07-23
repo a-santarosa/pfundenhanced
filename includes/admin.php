@@ -561,24 +561,25 @@ function funcause(){
 	}	
 function funcause1(){?>
 	<script type="text/javascript">
-    window.location.href="post-new.php?post_type=pfund_cause";
-    </script><?php }	
+        window.location.href="post-new.php?post_type=pfund_cause";
+        </script><?php }	
 	function funcampaign(){
 	?>
-    <script type="text/javascript">
-    window.location.href="edit.php?post_type=pfund_campaign";
-    </script>
+        <script type="text/javascript">
+        window.location.href="edit.php?post_type=pfund_campaign";
+        </script>
     <?php 
 	}	
 function funteamcampaigns(){?>
 	<script type="text/javascript">
-    window.location.href="edit.php?post_type=teamcampaigns";
-    </script><?php }	
+        window.location.href="edit.php?post_type=teamcampaigns";
+        </script><?php }	
 function myMenuPageFunction(){
 	?>
 	<script type="text/javascript">
-    window.location.href="edit.php?post_type=pfund_cause";
-    </script><?php }	
+        window.location.href="edit.php?post_type=pfund_cause";
+        </script>
+<?php }	
 	
 /**/
 function pfund_team_campaigns($post)
@@ -590,7 +591,7 @@ $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as
 echo '<select name="team_campaigns"><option>Select</option>';
 foreach($sql as $data)
 {
-	if($data->post_title!='sample-team'){
+	if($data->post_title!='team-creation'){
 ?>
 <option value="<?php echo $data->post_title;?>" <?php if($value==$data->post_title){echo "selected='selected'";}?>><?php echo $data->post_title;?></option>
 
@@ -769,6 +770,13 @@ function pfund_campaign_sortable_columns( $columns ) {
  */
 function pfund_comment_row_actions( $actions ) {
     global $post;
+	if ( isset( $post ) && $post->post_type == 'teamcampaigns') {
+		$newactions = array();
+        if ( isset( $actions['edit'] ) ) {
+            $newactions['edit'] = $actions['edit'];
+        }
+        return $newactions;
+		}
     if ( isset( $post ) && $post->post_type == 'pfund_campaign') {
         $newactions = array();
         if ( isset( $actions['edit'] ) ) {
@@ -864,7 +872,6 @@ function pfund_get_donations_list() {
     require_once( ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php' );
 	require_once( PFUND_DIR . '/includes/class-pfund-donor-list-table.php' );    
 	global $post_id;
-
     check_ajax_referer( 'get-donations' );
 
 	set_current_screen( 'pfund-donations-list' );

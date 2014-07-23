@@ -427,8 +427,8 @@ function _pfund_add_sample_team() {
 	$sample_content .= '[pfund-edit]';
 		
 	$cause = array(
-		'post_name' => 'sample-team',
-		'post_title' => __( 'sample-team', 'pfund' ),
+		'post_name' => 'team-creation',
+		'post_title' => __( 'team-creation', 'pfund' ),
 		'post_content' => $sample_content,
 		'post_status' => 'publish',
 		'post_type' => 'teamcampaigns'
@@ -528,7 +528,7 @@ $args = array(
 					 	'not_found'	          =>	'No Team Campaigns found.',
 					 	'not_found_in_trash'  => 'No Team Campaigns found in trash.'
 					),
-	'supports'      =>	array( 'title', 'revisions' ),
+	'supports'      =>	array( 'title', 'revisions','comments' ),
 	//'show_in_menu'  =>	'edit.php?post_type=pfund_campaign',
 	'map_meta_cap' => true,
 	'public'		    =>	true,
