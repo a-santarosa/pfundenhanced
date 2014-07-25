@@ -565,7 +565,7 @@ $args = array(
 	    'public'		  => true,
 	
     		
-);
+); 
 register_post_type( 'Team Campaigns', $args );
 }
 function manage_lesson_capabilities() {
