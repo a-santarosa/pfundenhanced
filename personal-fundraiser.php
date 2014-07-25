@@ -1,15 +1,18 @@
 <?php
 /*
-Plugin Name: Personal Fundraiser
-Plugin URI: http://cure.org/code
-Description: Expand your fundraising base by getting your donors and fans involved in the fundraising process.
-Version: 0.8.3
-Author: John Kleinschmidt
-Author URI: http://cure.org
+Plugin Name: Personal Fundraiser Enhanced
+Plugin URI: https://github.com/goalsquid/pfundenhanced
+Description: Fundraising for individuals and teams.
+Version: 0.8.4
+Author: Guhru Studio
+Author URI: http://guhru.com
 License: GPLv2
 */
 
 /*  Copyright 2013 CURE International  (email : info@cure.org)
+
+    Original Author: John Kleinschmidt
+    Original Author URI: http://cure.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as
@@ -25,7 +28,7 @@ License: GPLv2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-define( 'PFUND_VERSION', '0.8.3' );
+define( 'PFUND_VERSION', '0.8.4' );
 define( 'PFUND_FOLDER', str_replace( basename( __FILE__), '', plugin_basename( __FILE__ ) ) );
 // Define the URL to the plugin folder
 

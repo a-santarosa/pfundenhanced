@@ -781,7 +781,7 @@ $return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Phot
 	$sql1 = $wpdb->get_results("SELECT distinct(post_author),id FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); 
 	
 	$return_form .='<div style="padding:10px 0px;margin-top:20px;">
-	<h2>Lists Of Team Members</h2>
+	<h2>List Of Team Members</h2>
 	<ul>';
 	foreach($sql1 as $data1){
 	$raised=get_post_meta($data1->id,'_pfund_gift-tally');
@@ -1316,6 +1316,7 @@ function pfund_setup_shortcodes() {
 	add_shortcode( 'pfund-campaign-list', 'pfund_campaign_list' );
 	add_shortcode( 'pfund-campaign-permalink', 'pfund_campaign_permalink');
 	add_shortcode( 'pfund-cause-list', 'pfund_cause_list' );
+
 	add_shortcode( 'pfund-team-list', 'pfund_team_list' );
 	add_shortcode( 'pfund-comments', 'pfund_comments' );
 	add_shortcode( 'pfund-days-left', 'pfund_days_left' );
