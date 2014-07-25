@@ -535,16 +535,17 @@ add_meta_box( 'pfund-shortcode-list', __( 'Personal Fundraising shortcodes', 'pf
 add_action("admin_menu", "createMyMenus");
 
 function createMyMenus() {
-  	add_menu_page("Fundraising", "Fundraising", 0, "fundraising-slug", "myMenuPageFunction");
-	
+    add_menu_page("Fundraising", "Fundraising", 0, "fundraising-slug", "myMenuPageFunction");
 	add_submenu_page('fundraising-slug', 'Causes', 'Causes', 'edit_pages' , 'edit.php?post_type=pfund_cause','funcause');
 	add_submenu_page('fundraising-slug', 'Add New Causes', 'Add New Causes', 'edit_pages' ,'post-new.php?post_type=pfund_cause');
 	add_submenu_page('fundraising-slug', 'Campaigns', 'Campaigns', 'edit_pages' , 'edit.php?post_type=pfund_campaign','funcampaign');
 	add_submenu_page('fundraising-slug', 'Add New Campaigns', 'Add New Campaigns', 'edit_pages' , 'post-new.php?post_type=pfund_campaign');
 	add_submenu_page('fundraising-slug', 'Team Campaigns', 'Team Campaigns', 'edit_pages' , 'edit.php?post_type=teamcampaigns','funteamcampaigns');
 	add_submenu_page('fundraising-slug', 'Add New Team Campaigns', 'Add New Team Campaigns','edit_pages' , 'post-new.php?post_type=teamcampaigns');
-	add_submenu_page("fundraising-slug", __( 'Personal Fundraiser Settings', 'pfund' ), __( 'Options', 'pfund' ),
+   $menu = add_submenu_page("fundraising-slug", __( 'Personal Fundraiser Settings', 'pfund' ), __( 'Options', 'pfund' ),
 			'manage_options', 'personal-fundraiser-settings', 'pfund_options_page');
+	add_action( 'load-'.$menu, 'pfund_admin_js' );
+
 }
 function wpse28782_remove_menu_items() {
         remove_menu_page( 'edit.php?post_type=pfund_cause' );
@@ -561,25 +562,50 @@ function funcause(){
 	}	
 function funcause1(){?>
 	<script type="text/javascript">
-    window.location.href="post-new.php?post_type=pfund_cause";
-    </script><?php }	
+        window.location.href="post-new.php?post_type=pfund_cause";
+        </script><?php }	
 	function funcampaign(){
 	?>
-    <script type="text/javascript">
-    window.location.href="edit.php?post_type=pfund_campaign";
-    </script>
+        <script type="text/javascript">
+        window.location.href="edit.php?post_type=pfund_campaign";
+        </script>
     <?php 
 	}	
 function funteamcampaigns(){?>
 	<script type="text/javascript">
-    window.location.href="edit.php?post_type=teamcampaigns";
-    </script><?php }	
+        window.location.href="edit.php?post_type=teamcampaigns";
+        </script><?php }	
 function myMenuPageFunction(){
 	?>
+    
 	<script type="text/javascript">
-    window.location.href="edit.php?post_type=pfund_cause";
-    </script><?php }	
+        window.location.href="edit.php?post_type=pfund_cause";
+        </script>
+<?php }	
 	
+/**/
+/**/
+/**
+ * Add the capability to the role objects
+ * Should be in your activation function and done before you inspect with your plugin
+ * 
+ * @return void
+ */
+function wpse35165_add_cap()
+{
+    $custom_cap = 'name_of_your_custom_capability';
+    $min_cap    = 'subscriber'; // Check "Roles and objects table in codex!
+    $grant      = true; 
+
+    foreach ( $GLOBALS['wp_roles'] as $role_obj )
+    {
+        if ( 
+            ! $role_obj->has_cap( $custom_cap ) 
+            AND $role_obj->has_cap( $min_cap )
+        )
+            $role_obj->add_cap( $custom_cap, $grant );
+    }
+}
 /**/
 function pfund_team_campaigns($post)
 { 
@@ -590,7 +616,7 @@ $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as
 echo '<select name="team_campaigns"><option>Select</option>';
 foreach($sql as $data)
 {
-	if($data->post_title!='sample-team'){
+	if($data->post_title!='team-creation'){
 ?>
 <option value="<?php echo $data->post_title;?>" <?php if($value==$data->post_title){echo "selected='selected'";}?>><?php echo $data->post_title;?></option>
 
@@ -769,6 +795,13 @@ function pfund_campaign_sortable_columns( $columns ) {
  */
 function pfund_comment_row_actions( $actions ) {
     global $post;
+	if ( isset( $post ) && $post->post_type == 'teamcampaigns') {
+		$newactions = array();
+        if ( isset( $actions['edit'] ) ) {
+            $newactions['edit'] = $actions['edit'];
+        }
+        return $newactions;
+		}
     if ( isset( $post ) && $post->post_type == 'pfund_campaign') {
         $newactions = array();
         if ( isset( $actions['edit'] ) ) {
@@ -864,7 +897,6 @@ function pfund_get_donations_list() {
     require_once( ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php' );
 	require_once( PFUND_DIR . '/includes/class-pfund-donor-list-table.php' );    
 	global $post_id;
-
     check_ajax_referer( 'get-donations' );
 
 	set_current_screen( 'pfund-donations-list' );
@@ -1274,8 +1306,8 @@ function _pfund_option_fields() {
 	foreach ( $fields as $field_id => $field ) {		
 		_pfund_render_option_field( $field_id, $field );
 	}
-?>
-			<tr class="pfund-add-row">
+?>            
+            <tr class="pfund-add-row">
 				<td colspan="5" style="text-align: right;">
 					<a href="#" class="pfund-add-field"><?php _e( 'Add New Field', 'pfund' ) ?></a>
 				</td>

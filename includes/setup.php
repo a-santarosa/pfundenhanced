@@ -19,6 +19,7 @@
  * Activate the plugin
  */
 function pfund_activate( $flush_rules = true ) {
+
 	if ( version_compare( get_bloginfo( 'version' ), '3.6', '<' ) ) {
 		deactivate_plugins( PFUND_BASENAME );
 	} else {
@@ -427,8 +428,8 @@ function _pfund_add_sample_team() {
 	$sample_content .= '[pfund-edit]';
 		
 	$cause = array(
-		'post_name' => 'sample-team',
-		'post_title' => __( 'sample-team', 'pfund' ),
+		'post_name' => 'team-creation',
+		'post_title' => __( 'team-creation', 'pfund' ),
 		'post_content' => $sample_content,
 		'post_status' => 'publish',
 		'post_type' => 'teamcampaigns'
@@ -468,7 +469,19 @@ function _pfund_register_types() {
 			'search_items' => __( 'Search Causes', 'pfund' ),
 			'not_found' => __( 'No Causes Found', 'pfund' ),
 			'not_found_in_trash' => __( 'No Causes Found In Trash', 'pfund' ),
-		)
+		),
+		'map_meta_cap' => true,
+		'capabilities' => array(
+            'edit_post' => 'edit_cause',
+            'edit_posts' => 'edit_causes',
+            'edit_others_posts' => 'edit_other_causes',
+            'publish_posts' => 'publish_causes',
+            'edit_publish_posts' => 'edit_publish_causes',
+            'read_post' => 'read_causes',
+            'read_private_posts' => 'read_private_causes',
+            'delete_post' => 'delete_cause'
+        ),
+		'capability_type' => array('pfund_cause', 'causes'),
 	);
 	register_post_type( 'pfund_cause', $template_def );
 	register_post_type( 'pfund_cause_list' );
@@ -497,10 +510,17 @@ function _pfund_register_types() {
 			'title','comments'
 		),
 		'capabilities' => array(
-			'edit_post' => 'edit_campaign'
+			'edit_post' => 'edit_campaign',
+			'edit_posts' => 'edit_campaigns',
+            'edit_others_posts' => 'edit_other_campaigns',
+            'publish_posts' => 'publish_campaigns',
+            'edit_publish_posts' => 'edit_publish_campaigns',
+            'read_post' => 'read_campaigns',
+            'read_private_posts' => 'read_private_campaigns',
+            'delete_post' => 'delete_campaign'
 		),
 		'map_meta_cap' => true,
-		
+		'capability_type' => array('pfund_campaign', 'campaigns'),
 	);
 	
 	register_post_type( 'pfund_campaign', $campaign_def );
@@ -528,15 +548,108 @@ $args = array(
 					 	'not_found'	          =>	'No Team Campaigns found.',
 					 	'not_found_in_trash'  => 'No Team Campaigns found in trash.'
 					),
-	'supports'      =>	array( 'title', 'revisions' ),
+	'supports'      =>	array( 'title', 'revisions','comments' ),
 	//'show_in_menu'  =>	'edit.php?post_type=pfund_campaign',
-	'map_meta_cap' => true,
-	'public'		    =>	true,
+	'capabilities' => array(
+			'edit_post' => 'edit_teamcampaign',
+			'edit_posts' => 'edit_teamcampaigns',
+            'edit_others_posts' => 'edit_other_teamcampaigns',
+            'publish_posts' => 'publish_teamcampaigns',
+            'edit_publish_posts' => 'edit_publish_teamcampaigns',
+            'read_post' => 'read_teamcampaigns',
+            'read_private_posts' => 'read_private_teamcampaigns',
+            'delete_post' => 'delete_teamcampaign'
+		),
+		'map_meta_cap' => true,
+		'capability_type' => array('teamcampaigns', 'teamcampaigns'),
+	    'public'		  => true,
 	
     		
 );
 register_post_type( 'Team Campaigns', $args );
 }
+function manage_lesson_capabilities() {
+    // gets the role to add capabilities to
+   // $admin = get_role( 'administrator' );
+    //$editor = get_role( 'editor' );
+	$editor = get_role( 'subscriber' );
+	// replicate all the remapped capabilites from the custom post type lesson
+    $caps = array(
+    	'edit_cause',
+    	'edit_causes',
+    	'edit_other_causes',
+    	'publish_causes',
+    	'edit_published_causes',
+    	'read_causes',
+    	'read_private_causes',
+    	'delete_cause'
+    );
+    // give all the capabilities to the administrator
+   // foreach ($caps as $cap) {
+	//    $admin->add_cap( $cap );
+   // }
+    // limited the capabilities to the editor or a custom role 
+    foreach ($caps as $cap) {
+	    $editor->add_cap( $cap );
+    }
+}
+add_action( 'admin_init', 'manage_lesson_capabilities');
+function manage_lesson_capabilities12() {
+    // gets the role to add capabilities to
+    //$admin = get_role( 'administrator' );
+    //$editor = get_role( 'editor' );
+	$editor = get_role( 'subscriber' );
+	// replicate all the remapped capabilites from the custom post type lesson
+    $caps = array(
+    	'edit_campaign',
+    	'edit_campaigns',
+    	'edit_other_campaigns',
+    	'publish_campaigns',
+    	'edit_published_campaigns',
+    	'read_campaigns',
+    	'read_private_campaigns',
+    	'delete_campaign'
+    );
+    // give all the capabilities to the administrator
+   // foreach ($caps as $cap) {
+	//    $admin->add_cap( $cap );
+   // }
+    // limited the capabilities to the editor or a custom role 
+    foreach ($caps as $cap) {
+	    $editor->add_cap( $cap );
+    }
+}
+add_action( 'admin_init', 'manage_lesson_capabilities12');
+
+function manage_lesson_capabilities123() {
+    // gets the role to add capabilities to
+    //$admin = get_role( 'administrator' );
+    //$editor = get_role( 'editor' );
+	
+	$editor = get_role( 'subscriber' );
+	// replicate all the remapped capabilites from the custom post type lesson
+    $caps = array(
+    	'edit_teamcampaign',
+    	'edit_teamcampaigns',
+    	'edit_other_teamcampaigns',
+    	'publish_teamcampaigns',
+    	'edit_published_teamcampaigns',
+    	'read_teamcampaigns',
+    	'read_private_teamcampaigns',
+    	'delete_teamcampaign'
+    );
+    // give all the capabilities to the administrator
+    //foreach ($caps as $cap) {
+	   // $admin->add_cap( $cap );
+    //}
+    // limited the capabilities to the editor or a custom role 
+    foreach ($caps as $cap) {
+	    $editor->add_cap( $cap );
+    }
+
+}
+add_action( 'admin_init', 'manage_lesson_capabilities123');
+
 /*add_action('admin_menu', 'mt_add_pages1');
     function mt_add_pages1() {
      add_submenu_page('edit.php?post_type=pfund_campaign', __('Add New Team Campaigns','menu-test'),
