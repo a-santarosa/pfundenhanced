@@ -1252,4 +1252,16 @@ function _pfund_sort_fields( $field, $compare_field ) {
 	}
 	
 }
+function posts_for_current_author($query) {
+
+	if(!is_admin && !current_user_can( 'administrator' )){
+	if($query->is_admin) {
+
+		global $user_ID;
+		$query->set('author',  $user_ID);
+	}}
+	return $query;
+}
+add_filter('pre_get_posts', 'posts_for_current_author');
+
 ?>

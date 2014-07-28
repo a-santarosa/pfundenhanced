@@ -579,7 +579,7 @@ function myMenuPageFunction(){
 	?>
     
 	<script type="text/javascript">
-        window.location.href="edit.php?post_type=pfund_cause";
+        window.location.href="edit.php?post_type=pfund_campaign";
         </script>
 <?php }	
 	
