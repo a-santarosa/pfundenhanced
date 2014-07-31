@@ -22,4 +22,7 @@ if ( !defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 //Delete option from options table
 delete_option('pfund_options');
 
+// For site options in multisite
+delete_site_option( 'pfund_options' ); 
+
 ?>
