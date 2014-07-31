@@ -498,6 +498,17 @@ function _pfund_register_types() {
 		'supports' => array(
 			'title','comments'
 		),
+		//'capability_type' => 'page',
+		'capabilities' => array(
+			'edit_post' => 'edit_campaign',
+			'edit_posts' => 'edit_campaigns',
+            //'edit_others_posts' => 'edit_other_campaigns',
+            //'publish_posts' => 'publish_campaigns',
+            'edit_publish_posts' => 'edit_publish_campaigns',
+            'read_post' => 'read_campaigns',
+            'read_private_posts' => 'read_private_campaigns',
+            'delete_post' => 'delete_campaign'
+		),
 		'map_meta_cap' => true,
 	);
 	
