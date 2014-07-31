@@ -613,7 +613,7 @@ $value = get_post_meta( $post->ID, 'team_campaigns', true );
 global $wpdb;
 $table_name = $wpdb->prefix . "posts"; 
 $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as a INNER JOIN `wp_postmeta` as b WHERE  a.`ID` = b.`post_id` AND `post_type` = 'teamcampaigns' AND `post_status`='publish'");
-echo '<select name="team_campaigns"><option>Select</option>';
+echo '<select name="team_campaigns"><option value="">Select Team</option>';
 foreach($sql as $data)
 {
 	if($data->post_title!='team-creation'){

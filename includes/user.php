@@ -738,7 +738,7 @@ function pfund_edit() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . "posts"; 
         $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`),`id` FROM ".$table_name." WHERE `post_type` = 'pfund_cause' AND `post_status`='publish'");
-$return_form .= '<label for="cause-slug"><b>Select Cause</b><abbr title="required">*</abbr></label><select name="cause-slug"><option>Select Any One</option>';
+$return_form .= '<label for="cause-slug"><b>Select Cause</b><abbr title="required">*</abbr></label><select name="cause-slug"><option value="">Select Any One</option>';
 foreach($sql as $data)
 {
 $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 'selected=selected':"").'>'.$data->post_title.'</option>';
@@ -886,7 +886,7 @@ $sql = $wpdb->get_results("SELECT DISTINCT(`post_title`) FROM ".$table_name." as
 
 
 $return_form .= '<label for="pfund-teamcampaigns" style=" font-weight: bold;margin-right: 5px;">Select Team <abbr title="required">*</abbr></label>';
-$return_form .= '<select name="team_campaigns"><option>Select Team</option>';
+$return_form .= '<select name="team_campaigns"><option value="">Select Team</option>';
 foreach($sql as $data)
 {
 	if($data->post_title!='team-creation'){

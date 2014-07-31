@@ -498,18 +498,24 @@ function _pfund_register_types() {
 		'supports' => array(
 			'title','comments'
 		),
-		//'capability_type' => 'page',
-		'capabilities' => array(
-			'edit_post' => 'edit_campaign',
-			'edit_posts' => 'edit_campaigns',
-            //'edit_others_posts' => 'edit_other_campaigns',
-            //'publish_posts' => 'publish_campaigns',
-            'edit_publish_posts' => 'edit_publish_campaigns',
-            'read_post' => 'read_campaigns',
-            'read_private_posts' => 'read_private_campaigns',
-            'delete_post' => 'delete_campaign'
-		),
-		'map_meta_cap' => true,
+		// map_meta_cap will allow us to remap the existing capabilities with new capabilities to match the new custom post type
+        'map_meta_cap' => true,
+        // capabilities are what we are customising so lets remap them
+        'capabilities' => array(
+            'edit_post' => 'edit_Campaign',
+            'edit_posts' => 'edit_Campaigns',
+            'edit_others_posts' => 'edit_other_Campaigns',
+            'publish_posts' => 'publish_Campaigns',
+            'edit_publish_posts' => 'edit_publish_Campaigns',
+            'read_post' => 'read_Campaigns',
+            'read_private_posts' => 'read_private_Campaigns',
+            'delete_post' => 'delete_Campaign'
+        ),
+        // capability_type defines how to make words plural, by default the
+        // second word has an 's' added to it and for 'lesson' that's fine
+        // however when it comes to words like gallery the plural would become
+        // galleries so it's worth adding your own regardless of the plural.
+        'capability_type' => array('Campaign', 'Campaigns'),
 	);
 	
 	register_post_type( 'pfund_campaign', $campaign_def );
@@ -545,5 +551,29 @@ $args = array(
 );
 register_post_type( 'Team Campaigns', $args );
 }
-
+function manage_lesson_capabilitiestt() {
+    // gets the role to add capabilities to
+    $admin = get_role( 'administrator' );
+    $subscriber = get_role( 'subscriber' );
+	// replicate all the remapped capabilites from the custom post type lesson
+    $caps = array(
+    	'edit_Campaign',
+    	'edit_Campaigns',
+    	'edit_other_Campaigns',
+    	'publish_Campaigns',
+    	'edit_published_Campaigns',
+    	'read_lessons',
+    	'read_private_Campaigns',
+    	'delete_Campaign'
+    );
+    // give all the capabilities to the administrator
+    foreach ($caps as $cap) {
+	    $admin->add_cap( $cap );
+    }
+    // limited the capabilities to the editor or a custom role 
+    $subscriber->add_cap( 'edit_Campaign' );
+    $subscriber->add_cap( 'edit_Campaigns' );
+    $subscriber->add_cap( 'read_Campaigns' );
+}
+add_action( 'admin_init', 'manage_lesson_capabilitiestt');
 ?>
