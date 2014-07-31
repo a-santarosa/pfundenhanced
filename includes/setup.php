@@ -509,7 +509,9 @@ function _pfund_register_types() {
             'edit_publish_posts' => 'edit_publish_Campaigns',
             'read_post' => 'read_Campaigns',
             'read_private_posts' => 'read_private_Campaigns',
-            'delete_post' => 'delete_Campaign'
+            'delete_post' => 'delete_Campaign',
+	    'delete_posts' => 'delete_Campaigns',	
+  	
         ),
         // capability_type defines how to make words plural, by default the
         // second word has an 's' added to it and for 'lesson' that's fine
@@ -564,7 +566,8 @@ function manage_lesson_capabilitiestt() {
     	'edit_published_Campaigns',
     	'read_lessons',
     	'read_private_Campaigns',
-    	'delete_Campaign'
+    	'delete_Campaign',
+	'delete_Campaigns'	
     );
     // give all the capabilities to the administrator
     foreach ($caps as $cap) {

@@ -1260,8 +1260,42 @@ function posts_for_current_author($query) {
 		global $user_ID;
 		$query->set('author',  $user_ID);
 	}}
+if($query->is_admin==''){return $query;}
 	return $query;
 }
 add_filter('pre_get_posts', 'posts_for_current_author');
+function jquery_remove_counts()
+{
+	?>
+	<script type="text/javascript">
+	jQuery(function(){
+		jQuery("li.all").remove();
+		jQuery("li.publish").remove();
+		jQuery("li.trash").remove();
+		jQuery("li.pending").remove();
+	});
+	</script>
+	<?php
+}
 
+global $current_user;
+if ( !function_exists('wp_get_current_user') ) {
+function wp_get_current_user() {
+// Insert pluggable.php before calling get_currentuserinfo()
+require (ABSPATH . WPINC . '/pluggable.php');
+global $current_user;
+get_currentuserinfo();
+return $current_user;
+}
+}
+$subscriber = get_role( 'subscriber' );
+$user_ID = get_current_user_id();
+    global $current_user;
+    get_currentuserinfo();
+    $user_id = $current_user->ID;
+$user = new WP_User( $user_id );
+if($user->roles[0]!='administrator' )
+{
+	add_action('admin_footer', 'jquery_remove_counts');
+}
 ?>

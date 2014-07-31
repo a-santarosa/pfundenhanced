@@ -666,7 +666,7 @@ function teamcampaigns_posts_columns( $columns ) {
    // $columns['cause'] = __( 'Cause', 'pfund' );
 	$columns['user'] = __( 'User', 'pfund' );
 	// $columns['goal'] = __( 'Goal', 'pfund' );
-	$columns['team'] = __( 'Team Members', 'pfund' );
+	$columns['team'] = __( 'Team Indivisual Campaigns', 'pfund' );
 	 $columns['tally'] = __( 'Total Raised', 'pfund' );
 	
     return $columns;
@@ -1496,5 +1496,4 @@ function _pfund_save_cause_fields( $cause_id ) {
 				intval( $_REQUEST['pfund-cause-default-goal'] ) );
 	}
 }
-
 ?>

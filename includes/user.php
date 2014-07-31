@@ -779,16 +779,22 @@ $return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Phot
 	$table_name1 = $wpdb->prefix . "postmeta"; 
 	
 	$sql1 = $wpdb->get_results("SELECT distinct(post_author),id FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); 
-	
+	foreach($sql1 as $data1){
+	foreach($data1 as $data2){	
+	$p[]=$data2;}
+	}
+        $result = array_unique($p);
 	$return_form .='<div style="padding:10px 0px;margin-top:20px;">
 	<h2>Lists Of Team Members</h2>
 	<ul>';
-	foreach($sql1 as $data1){
-	$raised=get_post_meta($data1->id,'_pfund_gift-tally');
-	if($data1->post_author != $same){	
-	$userdata=get_userdata( $data1->post_author );	
-	$return_form .='<li><a href='.site_url().'/give/?id='.$data1->post_author.'>'.$userdata->display_name.'</a></li>';
-	}
+	foreach($result as $data1){
+	$raised=get_post_meta($data1,'_pfund_gift-tally');
+	//if($data1->post_author != $same){	
+	$userdata=get_userdata( $data1 );
+        if($userdata->display_name!=''){ 	
+	$return_form .='<li><a href='.site_url().'/give/?id='.$data1.'>'.$userdata->display_name.'</a></li>';
+	}	
+	//}
 	$total[] =$raised[0];
 	$same=$data1->post_author;
 	}
@@ -2293,5 +2299,4 @@ function _pfund_set_update_message1( $update_title, $update_content, $additional
 	echo $pfund_update_message;
 	
 }
-
 ?>
