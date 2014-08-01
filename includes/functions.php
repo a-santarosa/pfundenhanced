@@ -1298,4 +1298,21 @@ if($user->roles[0]!='administrator' )
 {
 	add_action('admin_footer', 'jquery_remove_counts');
 }
+add_action('pre_get_posts', 'filter_posts_list');
+function filter_posts_list($query)
+{
+    //$pagenow holds the name of the current page being viewed
+     global $pagenow;
+ 
+    //$current_user uses the get_currentuserinfo() method to get the currently logged in user's data
+     global $current_user;
+     get_currentuserinfo();
+     
+        //Shouldn't happen for the admin, but for any role with the edit_posts capability and only on the posts list page, that is edit.php
+        if(!current_user_can('administrator') && current_user_can('edit_posts') && ('edit.php' == $pagenow))
+     {
+        //global $query's set() method for setting the author as the current user's id
+        $query->set('author', $current_user->ID);
+        }
+}
 ?>

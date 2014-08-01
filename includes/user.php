@@ -778,26 +778,28 @@ $return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Phot
     $table_name = $wpdb->prefix . "posts"; 
 	$table_name1 = $wpdb->prefix . "postmeta"; 
 	
-	$sql1 = $wpdb->get_results("SELECT distinct(post_author),id FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); 
-	foreach($sql1 as $data1){
-	foreach($data1 as $data2){	
-	$p[]=$data2;}
-	}
-        $result = array_unique($p);
+	$sql1 = $wpdb->get_results("SELECT post_title,post_author,id,post_name FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); 
+	//foreach($sql1 as $data1){
+	//foreach($data1 as $data2){	
+	//$p[]=$data2;}
+	//}
+   // $result = array_unique($p);
+    $i=0;
 	$return_form .='<div style="padding:10px 0px;margin-top:20px;">
 	<h2>Lists Of Team Members</h2>
 	<ul>';
-	foreach($result as $data1){
-	$raised=get_post_meta($data1,'_pfund_gift-tally');
+
+	foreach($sql1 as $data1){
+	$raised=get_post_meta($data1->id,'_pfund_gift-tally');
 	//if($data1->post_author != $same){	
 	$userdata=get_userdata( $data1 );
-        if($userdata->display_name!=''){ 	
-	$return_form .='<li><a href='.site_url().'/give/?id='.$data1.'>'.$userdata->display_name.'</a></li>';
-	}	
+        //if($userdata->display_name!=''){ 	
+	$return_form .='<li><a href='.site_url().'/give/'.$data1->post_name.'>'.$data1->post_title.'</a></li>';
+	//}	
 	//}
 	$total[] =$raised[0];
 	$same=$data1->post_author;
-	}
+	$i++;}
 	$return_form .='</ul>';
     if(!empty($total)){
 	//$return_form .='<h2>Total Raised By Team :- $'.array_sum($total).'</h2>';
