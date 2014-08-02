@@ -848,6 +848,10 @@ function pfund_cause_meta( $post ) {
  */
 function pfund_edit_form_tag() {
 	global $post;
+	if ($post->post_type == 'teamcampaigns'){
+		echo ' enctype="multipart/form-data"';
+	}
+
 	if ( pfund_is_pfund_post() ){
 		echo ' enctype="multipart/form-data"';
 	}
@@ -1307,7 +1311,7 @@ function _pfund_option_fields() {
 		_pfund_render_option_field( $field_id, $field );
 	}
 ?>            
-            <tr class="pfund-add-row">
+			 <tr class="pfund-add-row">
 				<td colspan="5" style="text-align: right;">
 					<a href="#" class="pfund-add-field"><?php _e( 'Add New Field', 'pfund' ) ?></a>
 				</td>
@@ -1366,6 +1370,12 @@ function _pfund_render_option_field( $field_id, $field ) {
 			case 'giver_tally':
 				_e( 'Giver Tally', 'pfund' );				
 				break;
+			case 'photo':
+				_e( 'Personal Photo', 'pfund' );				
+				break;
+			case 'message':
+				_e( 'Personal Message', 'pfund' );				
+				break;		
 			default:
 				$can_delete_field = true;
 ?>

@@ -764,6 +764,12 @@ $return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Phot
     
 	$return_form .= '</form>';
 	$return_form .= '</div>';
+	$message = get_post_meta($post->ID,'_pfund_message',true);
+	$img = get_post_meta($post->ID,'_pfund_photo',true);
+	$image = wp_get_attachment_url($img);
+	if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
+	if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
+	$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
 	$validateSlug = array(
 		'file' => PFUND_URL.'validate-slug.php',
 		'alertTextLoad' => __( 'Please wait while we validate this location', 'pfund' ),
@@ -909,6 +915,13 @@ $return_form .= '<option value="'. $data->post_title.'" ' . (($value == $data->p
 	
 	$return_form .= '</form>';
 	$return_form .= '</div>';
+	$message = get_post_meta($campaign_id,'_pfund_message',true);
+	$img = get_post_meta($campaign_id,'_pfund_photo',true);
+	$image = wp_get_attachment_url($img);
+	if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
+	if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
+	
+	$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
 	$validateSlug = array(
 		'file' => PFUND_URL.'validate-slug.php',
 		'alertTextLoad' => __( 'Please wait while we validate this location', 'pfund' ),
@@ -1406,7 +1419,7 @@ function _pfund_auth_net_secure_donation_text() {
     $donation_text = '<div class="pfund-auth-net-secure-donations-text">';        
     $donation_text .= '<p>';
     $donation_text .= sprintf( __( 'You can donate to %s with confidence.  ', 'pfund' ), get_bloginfo('name') );
-    $donation_text .= __( 'We have partnered with <a target="_blank" href="http://www.authorize.net">Authorize.Net</a>, a leading payment gateway since 1996, to accept credit cards and electronic check payments safely and securely for our donors.', 'pfund' );
+    $f_text .= __( 'We have partnered with <a target="_blank" href="http://www.authorize.net">Authorize.Net</a>, a leading payment gateway since 1996, to accept credit cards and electronic check payments safely and securely for our donors.', 'pfund' );
     $donation_text .= '</p>';
     $donation_text .= '<p>';
     $donation_text .= __( 'The Authorize.Net Payment Gateway manages the complex routing of sensitive customer information through the electronic check and credit card processing networks.  ', 'pfund' );

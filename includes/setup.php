@@ -75,6 +75,18 @@ function pfund_activate( $flush_rules = true ) {
 						'desc' => __( 'The number of unique givers for the campaign.', 'pfund' ),
 						'type' => 'giver_tally',
 						'required' => true
+					),
+					'photo' => array(
+						'label' => __( 'Personal Photo', 'pfund' ),
+						'desc' => __( 'The Personal Photo of unique campaign.', 'pfund' ),
+						'type' => 'image',
+						'required' => true
+					),
+					'message' => array(
+						'label' => __( 'Personal Message', 'pfund' ),
+						'desc' => __( 'The Personal Message of campaign.', 'pfund' ),
+						'type' => 'textarea',
+						'required' => true
 					)
 				)
 			);
@@ -162,6 +174,24 @@ function pfund_activate( $flush_rules = true ) {
 				'label' => __( 'Giver Tally', 'pfund' ),
 				'desc' => __( 'The number of unique givers for the campaign.', 'pfund' ),
 				'type' => 'giver_tally',
+				'required' => true
+			);
+			$options_changed = true;
+		}
+		if ( ! isset( $pfund_options['fields']['photo'] ) ) {
+			$pfund_options['fields']['photo'] = array(
+				'label' => __( 'Persoanl Photo', 'pfund' ),
+				'desc' => __( 'The Persoanl Photo campaign.', 'pfund' ),
+				'type' => 'image',
+				'required' => true
+			);
+			$options_changed = true;
+		}
+		if ( ! isset( $pfund_options['fields']['message'] ) ) {
+			$pfund_options['fields']['message'] = array(
+				'label' => __( 'Persoanl Message', 'pfund' ),
+				'desc' => __( 'The Persoanl Message campaign.', 'pfund' ),
+				'type' => 'message',
 				'required' => true
 			);
 			$options_changed = true;
@@ -395,7 +425,7 @@ function _pfund_add_sample_cause() {
 	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
-	$sample_content .= '	<p>[pfund-donate]<p>';
+	//$sample_content .= '	<p>[pfund-donate]<p>';
 	$sample_content .= '</div>';
 	$sample_content .= '[pfund-edit]';
 		
@@ -423,7 +453,7 @@ function _pfund_add_sample_team() {
 	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
-	$sample_content .= '	<p>[pfund-donate]<p>';
+	//$sample_content .= '	<p>[pfund-donate]<p>';
 	$sample_content .= '</div>';
 	$sample_content .= '[pfund-edit]';
 		
