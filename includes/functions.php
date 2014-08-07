@@ -127,6 +127,7 @@ function pfund_date_to_iso8601( $date, $format ) {
 function pfund_determine_shortcode( $id, $type = '' ) {
 	$scode = '[pfund-'.$id;
 
+
 	if ( $type == 'fixed' ) {
 		$scode .= ' value="?"';
 	}
@@ -234,6 +235,7 @@ function pfund_is_pfund_post( $post_to_check = false, $include_lists = false ) {
 function pfund_process_authorize_net() {
 	$return_array = array( 'success' => false );
 	if ( ! (int)$_POST['cc_num'] || ! (int)$_POST['cc_amount'] || ! $_POST['cc_email'] || ! $_POST['cc_first_name']
+
 		 || ! $_POST['cc_last_name'] || ! $_POST['cc_address'] || ! $_POST['cc_city'] || ! $_POST['cc_zip']) {
 		if ( ! (int)$_POST['cc_num']) {
 			$return_array['error_msg'] = __( 'Error: Please enter a valid Credit Card number.', 'pfund' );

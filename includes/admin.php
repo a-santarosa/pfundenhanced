@@ -852,6 +852,7 @@ function pfund_edit_form_tag() {
 		echo ' enctype="multipart/form-data"';
 	}
 
+
 	if ( pfund_is_pfund_post() ){
 		echo ' enctype="multipart/form-data"';
 	}

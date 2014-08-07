@@ -1,1 +1,8 @@
 .pfund-text{width:300px}#footer{position:relative}
+#toplevel_page_fundraising-slug ul li.wp-first-item{display:none !important;}
+#toplevel_page_fundraising-slug .wp-submenu{position:relative;top:0;left:0;}
+.pht img {width: 200px;}
+.pfund-img{width: 200px;}
+.pfu{margin: 0;padding: 0;}
+.pfu li {margin: 0 20px 0 0 !important;padding: 0;}
+.det p{line-height: 26px;margin: 0;padding: 10px 0 0;}

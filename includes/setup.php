@@ -414,18 +414,19 @@ function pfund_update_options( $oldvalue, $newvalue ) {
  */
 function _pfund_add_sample_cause() {
 	$stat_li = '<li class="pfund-stat"><span class="highlight">%s</span>%s</li>';
-	$sample_content = '<ul>';
+	$sample_content = '<ul class="pfu">';
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-goal]', __( 'funding goal', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-tally]', __( 'raised', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '[pfund-giver-tally]', __( 'givers', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '[pfund-days-left]', __( 'days left', 'pfund' ) );
 	
 	$sample_content .= '</ul>';
-	$sample_content .= '<div style="clear: both;">';
+	$sample_content .= '<div style="clear: both;" class="det">';
 	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
-	//$sample_content .= '	<p>[pfund-donate]<p>';
+	$sample_content .='<p class="pht">[pfund-photo]</p>'; 
+	$sample_content .='<p style="margin:0; font-weight:bold;">Personal Message : </p>[pfund-message]'; 	$sample_content .= '<p>[pfund-donate]<p>';
 	$sample_content .= '</div>';
 	$sample_content .= '[pfund-edit]';
 		
@@ -442,18 +443,20 @@ function _pfund_add_sample_cause() {
 /**/
 function _pfund_add_sample_team() {
 	$stat_li = '<li class="pfund-stat"><span class="highlight">%s</span>%s</li>';
-	$sample_content = '<ul>';
+	$sample_content = '<ul class="pfu">';
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-goal]', __( 'funding goal', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-tally]', __( 'raised', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '[pfund-giver-tally]', __( 'givers', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '[pfund-days-left]', __( 'days left', 'pfund' ) );
 	
 	$sample_content .= '</ul>';
-	$sample_content .= '<div style="clear: both;">';
+	$sample_content .= '<div style="clear: both;" class="det">';
 	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
 	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
-	//$sample_content .= '	<p>[pfund-donate]<p>';
+	$sample_content .='<p class="pht">[pfund-photo]</p>'; 
+	$sample_content .='<p style="margin:0; font-weight:bold;">Personal Message : </p>[pfund-message]';
+	$sample_content .= '<p>[pfund-donate]<p>';
 	$sample_content .= '</div>';
 	$sample_content .= '[pfund-edit]';
 		
@@ -537,10 +540,11 @@ function _pfund_register_types() {
             'edit_others_posts' => 'edit_other_Campaigns',
             'publish_posts' => 'publish_Campaigns',
             'edit_publish_posts' => 'edit_publish_Campaigns',
-            'read_post' => 'read_Campaigns',
+            'read_post' => 'read_Campaign',
             'read_private_posts' => 'read_private_Campaigns',
             'delete_post' => 'delete_Campaign',
-	    'delete_posts' => 'delete_Campaigns',	
+			'delete_posts' => 'delete_Campaigns',
+			'delete_others_posts' => 'delete_others_Campaigns',	
   	
         ),
         // capability_type defines how to make words plural, by default the
@@ -585,8 +589,8 @@ register_post_type( 'Team Campaigns', $args );
 }
 function manage_lesson_capabilitiestt() {
     // gets the role to add capabilities to
-    $admin = get_role( 'administrator' );
-    $subscriber = get_role( 'subscriber' );
+    $admin = get_role('administrator');
+    $subscriber = get_role('subscriber');
 	// replicate all the remapped capabilites from the custom post type lesson
     $caps = array(
     	'edit_Campaign',
@@ -594,10 +598,11 @@ function manage_lesson_capabilitiestt() {
     	'edit_other_Campaigns',
     	'publish_Campaigns',
     	'edit_published_Campaigns',
-    	'read_lessons',
+    	'read_Campaign',
     	'read_private_Campaigns',
     	'delete_Campaign',
-	'delete_Campaigns'	
+	    'delete_Campaigns',
+		'delete_others_Campaigns'	
     );
     // give all the capabilities to the administrator
     foreach ($caps as $cap) {
@@ -606,7 +611,13 @@ function manage_lesson_capabilitiestt() {
     // limited the capabilities to the editor or a custom role 
     $subscriber->add_cap( 'edit_Campaign' );
     $subscriber->add_cap( 'edit_Campaigns' );
-    $subscriber->add_cap( 'read_Campaigns' );
+    $subscriber->add_cap('read_Campaigns');
+	global $wp_roles;
+	$wp_roles->remove_cap( 'subscriber', 'publish_Campaigns' );
+	$wp_roles->add_cap( 'administrator', 'delete_published_Campaigns' );
+	$wp_roles->add_cap( 'administrator', 'delete_private_Campaigns' );
+	$wp_roles->add_cap( 'administrator', 'delete_Campaigns' );
+	$wp_roles->add_cap( 'administrator', 'delete_others_Campaigns' );
 }
 add_action( 'admin_init', 'manage_lesson_capabilitiestt');
 ?>

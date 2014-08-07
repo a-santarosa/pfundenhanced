@@ -752,24 +752,24 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	}
 	
 	$return_form .= pfund_render_fields1( $post->ID, $campaign_title, $editing_campaign, $default_goal );
-    $mee=get_post_meta($campaign_id,'_pfund_message');
+    //$mee=get_post_meta($campaign_id,'_pfund_message');
 
-$return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Photo<abbr title="required">*</abbr></label>	<input type="file" name="pfund-photo" id="pfund-photo" >';
+//$return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Photo<abbr title="required">*</abbr></label>	<input type="file" name="pfund-photo" id="pfund-photo" >';
     
-	$return_form .='<label for="pfund-message" style="font-weight:bold;">Personal Message<abbr title="required">*</abbr></label>	
-	<textarea name="pfund-message" id="pfund-message" style="height:200px">'.$me[0].'</textarea>';
+	//$return_form .='<label for="pfund-message" style="font-weight:bold;">Personal Message<abbr title="required">*</abbr></label>	
+	//<textarea name="pfund-message" id="pfund-message" style="height:200px">'.$me[0].'</textarea>';
  $return_form .= '</select>';?>
 
 <?php
     
 	$return_form .= '</form>';
 	$return_form .= '</div>';
-	$message = get_post_meta($post->ID,'_pfund_message',true);
-	$img = get_post_meta($post->ID,'_pfund_photo',true);
-	$image = wp_get_attachment_url($img);
-	if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
-	if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
-	$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
+	//$message = get_post_meta($post->ID,'_pfund_message',true);
+	//$img = get_post_meta($post->ID,'_pfund_photo',true);
+	//$image = wp_get_attachment_url($img);
+	//if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
+	//if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
+	//$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
 	$validateSlug = array(
 		'file' => PFUND_URL.'validate-slug.php',
 		'alertTextLoad' => __( 'Please wait while we validate this location', 'pfund' ),
@@ -823,7 +823,6 @@ $return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Phot
 	}
 	
 	/**/
-	
 	
 	if ( ! pfund_is_pfund_post() ){
 		return '';
@@ -883,12 +882,12 @@ $return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Phot
 	
 	$return_form .= pfund_render_fields( $campaign_id, $campaign_title, $editing_campaign, $default_goal );
 
-$return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Photo<abbr title="required">*</abbr></label>	<input type="file" name="pfund-photo" id="pfund-photo" >';
-    $me=get_post_meta($campaign_id,'_pfund_message');
-	$return_form .='<label for="pfund-message" style="font-weight:bold;">Personal Message<abbr title="required">*</abbr></label>	
-	<textarea name="pfund-message" id="pfund-message" style="height:200px">
-	'.$me[0].'
-	</textarea>';
+//$return_form .='<label for="pfund-photo" style="font-weight:bold;">Personal Photo<abbr title="required">*</abbr></label>	<input type="file" name="pfund-photo" id="pfund-photo" >';
+    //$me=get_post_meta($campaign_id,'_pfund_message');
+	//$return_form .='<label for="pfund-message" style="font-weight:bold;">Personal Message<abbr title="required">*</abbr></label>	
+	//<textarea name="pfund-message" id="pfund-message" style="height:200px">
+	//'.$me[0].'
+	//</textarea>';
 	
 
 $value = get_post_meta( $campaign_id, 'team_campaigns', true );
@@ -915,13 +914,13 @@ $return_form .= '<option value="'. $data->post_title.'" ' . (($value == $data->p
 	
 	$return_form .= '</form>';
 	$return_form .= '</div>';
-	$message = get_post_meta($campaign_id,'_pfund_message',true);
-	$img = get_post_meta($campaign_id,'_pfund_photo',true);
-	$image = wp_get_attachment_url($img);
-	if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
-	if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
+	//$message = get_post_meta($campaign_id,'_pfund_message',true);
+	//$img = get_post_meta($campaign_id,'_pfund_photo',true);
+	//$image = wp_get_attachment_url($img);
+	//if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
+	//if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
 	
-	$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
+	//$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
 	$validateSlug = array(
 		'file' => PFUND_URL.'validate-slug.php',
 		'alertTextLoad' => __( 'Please wait while we validate this location', 'pfund' ),
