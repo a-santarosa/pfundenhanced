@@ -666,7 +666,7 @@ function teamcampaigns_posts_columns( $columns ) {
    // $columns['cause'] = __( 'Cause', 'pfund' );
 	$columns['user'] = __( 'User', 'pfund' );
 	// $columns['goal'] = __( 'Goal', 'pfund' );
-	$columns['team'] = __( 'Team Indivisual Campaigns', 'pfund' );
+	$columns['team'] = __( 'Team Members', 'pfund' );
 	 $columns['tally'] = __( 'Total Raised', 'pfund' );
 	
     return $columns;
@@ -684,13 +684,21 @@ function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
 			break;
 			
 			case 'team':
-			global $wpdb;
-			$table_name = $wpdb->prefix . "posts"; 
+			global $wpdb,$post;
+			$matv = get_post_meta($post->ID,'_pfund_camp-title');
+            $table_name = $wpdb->prefix . "posts"; 
+	        $table_name1 = $wpdb->prefix . "postmeta"; 
 			 $value = get_the_title($campaign_id);
-			 $data = $wpdb->get_results("SELECT DISTINCT(`post_title`),meta_key FROM ".$table_name." a INNER JOIN `wp_postmeta` b ON a.ID = b.post_id WHERE post_type = 'pfund_campaign' AND meta_value = '".$value."'");
+			 $data = $wpdb->get_results("SELECT distinct(post_author) FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'");
 			foreach($data as $s)
 			{
-			echo $s->post_title;
+			$user_info = get_userdata($s->post_author);
+			if($user_info->user_login != 'admin'){
+            echo $user_info->first_name."&nbsp;&nbsp;".$user_info->last_name;
+			}else
+			{
+			echo $user_info->user_login;	
+			}
 			echo '<br>';
 			}
 			break;
