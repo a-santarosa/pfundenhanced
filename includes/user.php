@@ -890,7 +890,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	//</textarea>';
 	
 
-$value = get_post_meta( $campaign_id, 'team_campaigns', true );
+$valuexx = get_post_meta( $campaign_id, 'team_campaigns', true );
 global $wpdb;
 $table_name = $wpdb->prefix . "posts";
 $table_name1 = $wpdb->prefix . "postmeta";
@@ -903,7 +903,7 @@ $return_form .= '<select name="team_campaigns"><option value="">Select Team</opt
 foreach($sql as $data)
 {
 	if($data->post_title!='team-creation'){
-$return_form .= '<option value="'. $data->post_title.'" ' . (($value == $data->post_title) ? "selected" : "selected").'>'.$data->post_title.'</option>';	
+$return_form .= '<option value="'. $data->post_title.'" ' . (($valuexx == $data->post_title) ? "selected" : "selected").'>'.$data->post_title.'</option>';	
 
 	}
 
