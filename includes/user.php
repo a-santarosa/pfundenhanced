@@ -813,6 +813,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	'<script type="text/javascript">
 	jQuery( document ).ready(function() {
 	jQuery( "ul li:nth-child(2) .highlight" ).text( "$'.array_sum($total).'" );
+	jQuery( "div p:nth-child(3)" ).text( "So far I have raised $'.array_sum($total).'. If you would like to contribute to my cause, click on the donate button below:" );
 	jQuery( "ul li:nth-child(3).pfund-stat ").hide();
 	});
 	</script>';
@@ -902,10 +903,18 @@ $return_form .= '<label for="pfund-teamcampaigns" style=" font-weight: bold;marg
 $return_form .= '<select name="team_campaigns"><option value="">Select Team</option>';
 foreach($sql as $data)
 {
+	if($valuexx == $data->post_title){
+        $bb=$data->post_title;
+	$g="selected='selected'";
 	if($data->post_title!='team-creation'){
-$return_form .= '<option value="'. $data->post_title.'" ' . (($valuexx == $data->post_title) ? "selected" : "selected").'>'.$data->post_title.'</option>';	
-
+$return_form .= '<option value="'. $data->post_title.'" '.$g.' >'.$data->post_title.'</option>';	
+}
 	}
+	if($data->post_title!='team-creation' && $bb!=$data->post_title ){
+	$return_form .= '<option value="'. $data->post_title.'" >'.$data->post_title.'</option>';	
+	}	
+
+	
 
  }
  $return_form .= '</select>';?>

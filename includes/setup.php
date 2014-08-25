@@ -451,9 +451,9 @@ function _pfund_add_sample_team() {
 	
 	$sample_content .= '</ul>';
 	$sample_content .= '<div style="clear: both;" class="det">';
-	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
-	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
-	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
+	$sample_content .= '<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
+	$sample_content .= '<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
+	$sample_content .= '<p id="team_raised" class="teama">'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
 	$sample_content .='<p class="pht">[pfund-photo]</p>'; 
 	$sample_content .='<p style="margin:0; font-weight:bold;">Personal Message : </p>[pfund-message]';
 	$sample_content .= '<p>[pfund-donate]<p>';
