@@ -442,7 +442,7 @@ function _pfund_add_sample_cause() {
 
 /**/
 function _pfund_add_sample_team() {
-	$stat_li = '<li class="pfund-stat"><span class="highlight">%s</span>%s</li>';
+	/*$stat_li = '<li class="pfund-stat"><span class="highlight">%s</span>%s</li>';
 	$sample_content = '<ul class="pfu">';
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-goal]', __( 'funding goal', 'pfund' ) );
 	$sample_content .= sprintf( $stat_li, '$[pfund-gift-tally]', __( 'raised', 'pfund' ) );
@@ -451,15 +451,31 @@ function _pfund_add_sample_team() {
 	
 	$sample_content .= '</ul>';
 	$sample_content .= '<div style="clear: both;" class="det">';
-	$sample_content .= '<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
-	$sample_content .= '<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
-	$sample_content .= '<p id="team_raised" class="teama">'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
+	$sample_content .= '	<p>'.__( 'I have an event on [pfund-end-date] that I am involved with for my cause.', 'pfund' ).'</p>';
+	$sample_content .= '	<p>'.__( 'I am hoping to raise $[pfund-gift-goal] for my cause.', 'pfund' ).'</p>';
+	$sample_content .= '	<p>'.__( 'So far I have raised $[pfund-gift-tally].  If you would like to contribute to my cause, click on the donate button below:', 'pfund' ).'</p>';
 	$sample_content .='<p class="pht">[pfund-photo]</p>'; 
 	$sample_content .='<p style="margin:0; font-weight:bold;">Personal Message : </p>[pfund-message]';
 	$sample_content .= '<p>[pfund-donate]<p>';
 	$sample_content .= '</div>';
-	$sample_content .= '[pfund-edit]';
-		
+	$sample_content .= '[pfund-edit]';*/
+		$sample_content = "<h1>SUPPORTING NIAGARA HOSPICE CARE</h1>
+<ul class='pfu'>
+  <li class='pfund-stat'><span class='highlight'>$[pfund-gift-goal]</span>funding goal</li>
+  <li class='pfund-stat'><span class='highlight'>$[pfund-gift-tally]</span>raised</li>
+  <li class='pfund-stat'><span class='highlight'>[pfund-giver-tally]</span>givers</li>
+  <li class='pfund-stat'><span class='highlight'>[pfund-days-left]</span>days left</li>
+  <li class='pfund-stat' style='background:none'>[pfund-progress-bar]</li>
+</ul>
+<div style='clear: both;' class='det'>
+<br/>
+<h2>HI OUR TEAM IS, [pfund-camp-title] </h2> 
+<p>We are raising funds to support Niagara Hospice patients and their families . Please support our team effort by clicking on the donate button below, or donate on a team member's page by clicking below. Thank you for supporting Niagara Hospice!</p>
+<p style='margin:0; font-weight:bold;'>My Personal Message : </p>
+<p>[pfund-message]</p>
+<p class='pht'>[pfund-photo]</p>
+<p>[pfund-donate]<p>
+</div>[pfund-edit]";
 	$cause = array(
 		'post_name' => 'team-creation',
 		'post_title' => __( 'team-creation', 'pfund' ),
@@ -529,7 +545,7 @@ function _pfund_register_types() {
 			'not_found_in_trash' => __( 'No Campaigns Found In Trash', 'pfund' ),
 		),
 		'supports' => array(
-			'title','comments'
+			'title','comments','editor'
 		),
 		// map_meta_cap will allow us to remap the existing capabilities with new capabilities to match the new custom post type
         'map_meta_cap' => true,
@@ -579,7 +595,7 @@ $args = array(
 					 	'not_found'	          =>	'No Team Campaigns found.',
 					 	'not_found_in_trash'  => 'No Team Campaigns found in trash.'
 					),
-	    'supports'      =>	array( 'title', 'revisions','comments' ),
+	    'supports'      =>	array( 'title', 'revisions','comments','editor'),
 		'map_meta_cap' => true,
 	    'public'		  => true,
 	

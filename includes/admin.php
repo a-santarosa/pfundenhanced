@@ -685,14 +685,50 @@ function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
 			
 			case 'team':
 			global $wpdb,$post;
+			
 			$matv = get_post_meta($post->ID,'_pfund_camp-title');
             $table_name = $wpdb->prefix . "posts"; 
 	        $table_name1 = $wpdb->prefix . "postmeta"; 
 			 $value = get_the_title($campaign_id);
-			 $data = $wpdb->get_results("SELECT distinct(post_author) FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'");
-			foreach($data as $s)
-			{
+			 $data = $wpdb->get_results("SELECT distinct(post_author) FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'teamcampaigns' AND `meta_key`='team_members'");
+			 
+			
+			$attendeeids = get_post_meta($post->ID, 'team_members', true);
+			$att_ids = explode(',', $attendeeids);
+			//print_r($att_ids);
+			/* $attendeeids = $wpdb->get_results("SELECT attendee_id from ".$wpdb->prefix."events_attendee_meta where meta_key = 'attendee_teamcampaign_name' AND meta_value = '".$post->ID."'");
+			 
+			 if(empty($attendeeids))
+			 { 
+				  $attendeeids = $wpdb->get_results("SELECT attendee_id from ".$wpdb->prefix."events_attendee_meta where meta_key = 'attendee_teamcampaign_name' AND meta_value = '".get_the_title($post->ID)."'");
+			 }*/
+			 $attendeefullname = array();
+			 foreach($att_ids as $att_id){
+			  $attendeefname = $wpdb->get_var("SELECT fname from ".$wpdb->prefix."events_attendee where id = '".$att_id."'");
+			  $attendeelname = $wpdb->get_var("SELECT lname from ".$wpdb->prefix."events_attendee where id = '".$att_id."'");
+			  $attendeefullname[] = $attendeefname. ' ' . $attendeelname;
+			 }
+		/*added to show campaign users 05-02-2015*/
+			$team_title = get_the_title( $post->ID );
+	$personal_ids 	= $wpdb->get_results('SELECT post_id FROM '.$wpdb->prefix.'postmeta WHERE meta_value = "'.$team_title.'"' );
+	$data_array = array();
+	foreach($personal_ids as $personal_id){
+		$data_array[] = array('fname' => get_post_meta($personal_id->post_id,'_pfund_first-name',true),
+								'lname' => get_post_meta($personal_id->post_id,'_pfund_last-name',true)
+							);
+		}
+	foreach($data_array as $data){
+        if(!empty($data['fname'])){ 	
+	$attendeefullname[] = $data['fname'].' '.$data['lname'];
+		}
+	}
+			/*end editing*/
+			echo implode($attendeefullname, ', ');
+			/*foreach($data as $s)
+			{ //echo $s->post_author; 
 			$user_info = get_userdata($s->post_author);
+			echo  $user_info->user_login;
+			echo $user_info->first_name."&nbsp;&nbsp;".$user_info->last_name;
 			if($user_info->user_login != 'admin'){
             echo $user_info->first_name."&nbsp;&nbsp;".$user_info->last_name;
 			}else
@@ -700,7 +736,7 @@ function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
 			echo $user_info->user_login;	
 			}
 			echo '<br>';
-			}
+			}*/
 			break;
 
 			case 'tally':
@@ -716,6 +752,7 @@ function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
 			 $sql2 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
 			  $sql3 =$sql3 + $sql2 ; 
 			}
+			
 				echo $sql3;
 			 //print_r($sql);
 			 //$sql2 = $wpdb->get_results("SELECT DISTINCT(meta_value) FROM `wp_postmeta` WHERE post_id IN($sql) AND meta_key = '_pfund_gift-tally'");
