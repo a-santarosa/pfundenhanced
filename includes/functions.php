@@ -3339,7 +3339,7 @@ function team_members_meta_box_callback( $post ) {
 
  */
 
-function team_members_save_meta_box_data( $post_id ) {
+function team_members_save_meta_box_data1( $post_id ) {
 
 
 
@@ -3420,26 +3420,22 @@ function team_members_save_meta_box_data( $post_id ) {
 	$exit_mem   =    get_post_meta($post_id,'team_members',true); 
 
 	$explode    =    explode(',',$exit_mem);
-
+	
 	// remove members from team
+	if(isset($_POST['remove_members'])) {
 
-	if(isset($_POST['remove_members'])):
 
 		$remove_mem =     $_POST['remove_members'];
-
-		foreach($remove_mem as $mval):
-
+		foreach($remove_mem as $mval)
+		 {
 		$key = array_search($mval,$explode);
-
 		unset($explode[$key]);
-
-		endforeach;
-
+		
+		}
+		//$explode = array_values($explode);
 		$implode = implode(',',$explode);
-
 		update_post_meta( $post_id, 'team_members', $implode );
-
-    endif;	
+	}
 
 	// Add members in team
 
@@ -3448,13 +3444,15 @@ function team_members_save_meta_box_data( $post_id ) {
 	if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
 
 		$add_mem[]  =    $_POST['add_member_id'] ;
-
+		if(strpos( $exit_mem, ',' ) !== false){
 		$explode    =    explode(',',$exit_mem);
-
 		$result     =    array_merge($add_mem,$explode);
 		$result		= 	 array_unique($result);
 		$implode    = implode(',',$result);
-
+		}else{
+			$implode = $exit_mem.','.$_POST['add_member_id'];
+			}
+		
 		update_post_meta( $post_id, 'team_members', $implode );
 
 	endif;
@@ -3469,7 +3467,7 @@ function team_members_save_meta_box_data( $post_id ) {
 
 }
 
-add_action( 'save_post', 'team_members_save_meta_box_data' );
+add_action( 'save_post', 'team_members_save_meta_box_data1' );
 
 add_action('admin_footer','load_search_member_js');
 
@@ -3573,7 +3571,7 @@ function Load_search_member_callback()
 
 	$exit_mem       =    trim($get_exit_mem,',');
 	
-	$attendee_name=$_POST['smem'];
+	$attendee_name= $_POST['smem'];
 	if(!empty($exit_mem)):
 
 	$query="SELECT * FROM ".$wpdb->prefix."events_attendee WHERE id NOT IN(".$exit_mem.") AND (fname LIKE '".$attendee_name."%' OR lname LIKE '".$attendee_name."%')";
@@ -3763,4 +3761,6 @@ function update_content_add_team_campaign($post_id)
 			}
 	}
 }
+if(!isset($_POST['remove_members'])){
 add_action( 'save_post','update_content_add_team_campaign');
+}
