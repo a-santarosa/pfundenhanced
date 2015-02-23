@@ -2083,7 +2083,7 @@ function pfund_get_total_published_campaigns() {
 
     $published_posts = $count_posts->publish;
 
-    return number_format( $published_posts, 0, ".", "," );
+    return number_format( $published_posts, 0 ,".","," );
 
 }
 
@@ -2769,7 +2769,6 @@ add_action('wp_head','save_cj_team_data');
 
 if(!function_exists('save_cj_team_data')):
 
-
 function save_cj_team_data()
 
 {
@@ -2819,6 +2818,7 @@ function save_cj_team_data()
 	  else{
 
 	  $impl=$check.','.$xatid;
+	
 
 	  update_post_meta($team_value,'team_members',$impl);
 
@@ -3018,6 +3018,7 @@ add_action('wp_head','update_attendee_team');
 function update_attendee_team()
 
 {
+	
 
     global $wpdb;
 
@@ -3071,7 +3072,7 @@ function update_attendee_team()
 
 		   update_post_meta($post_id,'team_members',$mem_id);
 
-		   $old_team      =  get_post_meta($current_team,'team_members',true);
+		 $old_team      =  get_post_meta($current_team,'team_members',true);
 
            $exp           =  explode(',',$old_team);
 
@@ -3111,7 +3112,7 @@ function update_attendee_team()
 
 	     
 
-		 unset($exp[$key]);
+		// unset($exp[$key]);
 
 		 
 
@@ -3316,7 +3317,6 @@ function team_members_meta_box_callback( $post ) {
 
     echo '<input type="hidden" name="add_member_id" id="add_member_id" value="">';	
 
-
 	echo '<input type="text" name="add_members" id="add_members" value="" style="position:relative;" autocomplete="off"/>';
 
 	echo  '<div id="load_member"></div>';
@@ -3339,98 +3339,51 @@ function team_members_meta_box_callback( $post ) {
 
  */
 
-function team_members_save_meta_box_data1( $post_id ) {
-
-
-
+function team_members_save_meta_box_data( $post_id ) {
 	/*
-
 	 * We need to verify this came from our screen and with proper authorization,
-
 	 * because the save_post action can be triggered at other times.
-
 	 */
 
-
-
 	// Check if our nonce is set.
-
 	if ( ! isset( $_POST['team_members_meta_box_nonce'] ) ) {
-
 		return;
-
 	}
-
-
 
 	// Verify that the nonce is valid.
-
 	if ( ! wp_verify_nonce( $_POST['team_members_meta_box_nonce'], 'team_members_meta_box' ) ) {
-
 		return;
-
 	}
-
-
 
 	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
-
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-
 		return;
-
 	}
-
-
 
 	// Check the user's permissions.
-
 	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
-
-
-
 		if ( ! current_user_can( 'edit_page', $post_id ) ) {
-
 			return;
-
 		}
-
-
-
 	} else {
-
-
-
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-
 			return;
-
 		}
-
 	}
-
-
-
 	/* OK, it's safe for us to save the data now. */
 
-	
-
 	// Sanitize user input.
-
 	$exit_mem   =    get_post_meta($post_id,'team_members',true); 
 
-	$explode    =    explode(',',$exit_mem);
+	$explode    =    explode(',',$exit_mem); 
 	
 	// remove members from team
 	if(isset($_POST['remove_members'])) {
-
-
 		$remove_mem =     $_POST['remove_members'];
 		foreach($remove_mem as $mval)
 		 {
 		$key = array_search($mval,$explode);
 		unset($explode[$key]);
-		
 		}
 		//$explode = array_values($explode);
 		$implode = implode(',',$explode);
@@ -3438,25 +3391,20 @@ function team_members_save_meta_box_data1( $post_id ) {
 	}
 
 	// Add members in team
-
-	$exit_mem   =    get_post_meta($post_id,'team_members',true); 
-
+	if(!empty($exit_mem)){
 	if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
-
+		
 		$add_mem[]  =    $_POST['add_member_id'] ;
-		if(strpos( $exit_mem, ',' ) !== false){
+	
 		$explode    =    explode(',',$exit_mem);
 		$result     =    array_merge($add_mem,$explode);
-		$result		= 	 array_unique($result);
+		$result		= 	 array_unique($result); 
 		$implode    = implode(',',$result);
-		}else{
-			$implode = $exit_mem.','.$_POST['add_member_id'];
-			}
-		
+				
 		update_post_meta( $post_id, 'team_members', $implode );
-
+		
 	endif;
-
+	}
 	//remove team campaigns
 	if(isset($_POST['remove_teamcampaigns'])){
 		foreach($_POST['remove_teamcampaigns'] as $camp_id){
@@ -3464,10 +3412,10 @@ function team_members_save_meta_box_data1( $post_id ) {
 			}
 		}
 	
-
+	
 }
 
-add_action( 'save_post', 'team_members_save_meta_box_data1' );
+add_action( 'save_post', 'team_members_save_meta_box_data' );
 
 add_action('admin_footer','load_search_member_js');
 
@@ -3544,6 +3492,7 @@ function load_search_member_js()
 	   {
 
 	     document.getElementById('add_members').value=member_name;
+		 
 
 		 document.getElementById('add_member_id').value=member_id;
 
@@ -3572,6 +3521,7 @@ function Load_search_member_callback()
 	$exit_mem       =    trim($get_exit_mem,',');
 	
 	$attendee_name= $_POST['smem'];
+	
 	if(!empty($exit_mem)):
 
 	$query="SELECT * FROM ".$wpdb->prefix."events_attendee WHERE id NOT IN(".$exit_mem.") AND (fname LIKE '".$attendee_name."%' OR lname LIKE '".$attendee_name."%')";
@@ -3761,6 +3711,6 @@ function update_content_add_team_campaign($post_id)
 			}
 	}
 }
-if(!isset($_POST['remove_members'])){
+if(!isset($_POST['remove_members']) && !empty($_POST['add_member_id']) && !isset($_POST['add_member_id']) ){
 add_action( 'save_post','update_content_add_team_campaign');
 }
