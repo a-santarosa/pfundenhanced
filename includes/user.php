@@ -39,6 +39,7 @@ require_once( PFUND_DIR . '/includes/paypalfunctions.php' );
  * @param mixed $post the post object containing the campaign.
  */
 function pfund_add_gift( $transaction_array, $post ) {
+	global $wpdb;
 	$processed_transactions = get_post_meta( $post->ID, '_pfund_transaction_ids' );
 	$transaction_nonce = $transaction_array['transaction_nonce'];
 	//Make sure this transaction hasn't already been processed.
@@ -58,17 +59,7 @@ function pfund_add_gift( $transaction_array, $post ) {
 		} else {
 			$tally += $transaction_array['amount'];
 		}
-		//added 03-02-2015
-		if($post->post_type == 'teamcampaigns'){
-			$team_title = get_the_title( $post->ID );
-	$personal_ids 	= $wpdb->get_results('SELECT post_id FROM '.$wpdb->prefix.'postmeta WHERE meta_value = "'.$team_title.'"' );
-	$campaign_tally = 0;
-	foreach($personal_ids as $personal_id){
-		$campaign_tally += get_post_meta($personal_id->post_id,'_pfund_gift-tally',true);
-		}
-		$tally = $tally + $campaign_tally;
-			}
-			//end editing
+		
 		update_post_meta( $post->ID, '_pfund_gift-tally', $tally );
 		add_post_meta( $post->ID, '_pfund_transaction_ids', $transaction_nonce );
 
@@ -839,6 +830,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	
 	$sql1 = $wpdb->get_results("SELECT post_title,post_author,id,post_name FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); */
 	foreach($members_id[0] as $mem_id){
+		if($mem_id != '')
 		$sql1[] = $wpdb->get_results("SELECT fname, lname FROM ". $wpdb->prefix."events_attendee WHERE id = ".$mem_id);
 		}
 	//foreach($sql1 as $data1){
@@ -1711,6 +1703,7 @@ function _pfund_current_user_can_create( $pfund_options = array() ) {
  */
 function _pfund_current_user_can_submit( $pfund_options = array() ) {
 	if ( empty( $pfund_options ) ) {
+
 		$pfund_options = get_option( 'pfund_options' );
 	}
 	if ( ! empty ($pfund_options['submit_role']) ) {
