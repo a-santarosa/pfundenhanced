@@ -2725,7 +2725,12 @@ function Load_team_data_callback()
 
 				<?php
 
-		$tarr=array('post_type'=>'teamcampaigns','post_status'=>'publish');
+		$tarr=array('post_type'		=>	'teamcampaigns',
+					'post_status'	=>	'publish', 
+					'numberposts'   =>	-1, 
+					'orderby'       => 'post_title',
+					'order'         => 'ASC'
+					);
 
 		$exist_teams=get_posts($tarr);
 
@@ -2735,7 +2740,7 @@ function Load_team_data_callback()
 
 			foreach($exist_teams as $team):
 
-			if($team->post_title!='team-creation'){
+			if( $team->post_title!='team-creation'){
 
 				echo '<option value="'.$team->ID.'">'.$team->post_title.'</option>';
 
@@ -3391,7 +3396,7 @@ function team_members_save_meta_box_data( $post_id ) {
 	}
 
 	// Add members in team
-	if(!empty($exit_mem)){
+	//if(!empty($exit_mem)){
 	if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
 		
 		$add_mem[]  =    $_POST['add_member_id'] ;
@@ -3404,7 +3409,7 @@ function team_members_save_meta_box_data( $post_id ) {
 		update_post_meta( $post_id, 'team_members', $implode );
 		
 	endif;
-	}
+	//}
 	//remove team campaigns
 	if(isset($_POST['remove_teamcampaigns'])){
 		foreach($_POST['remove_teamcampaigns'] as $camp_id){
@@ -3415,7 +3420,7 @@ function team_members_save_meta_box_data( $post_id ) {
 	
 }
 
-add_action( 'save_post', 'team_members_save_meta_box_data' );
+//add_action( 'save_post', 'team_members_save_meta_box_data' );
 
 add_action('admin_footer','load_search_member_js');
 
@@ -3691,6 +3696,7 @@ function update_content_add_team_campaign($post_id)
 <p>[pfund-donate]<p>
 </div>[pfund-edit]");
 	wp_update_post($args);
+	
 	// re-hook this function
 		add_action('save_post', 'update_content_add_team_campaign');
 	}
@@ -3710,7 +3716,81 @@ function update_content_add_team_campaign($post_id)
 		update_post_meta($team_camp_id,'_pfund_gift-tally',$team_tally);
 			}
 	}
+	/*
+	 * We need to verify this came from our screen and with proper authorization,
+	 * because the save_post action can be triggered at other times.
+	 */
+
+	// Check if our nonce is set.
+	if ( ! isset( $_POST['team_members_meta_box_nonce'] ) ) {
+		return;
+	}
+
+	// Verify that the nonce is valid.
+	if ( ! wp_verify_nonce( $_POST['team_members_meta_box_nonce'], 'team_members_meta_box' ) ) {
+		return;
+	}
+
+	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check the user's permissions.
+	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
+		if ( ! current_user_can( 'edit_page', $post_id ) ) {
+			return;
+		}
+	} else {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+	/* OK, it's safe for us to save the data now. */
+
+	// Sanitize user input.
+	$exit_mem   =    get_post_meta($post_id,'team_members',true); 
+
+	$explode    =    explode(',',$exit_mem); 
+	
+	// remove members from team
+	if(isset($_POST['remove_members'])) {
+		$remove_mem =     $_POST['remove_members'];
+		foreach($remove_mem as $mval)
+		 {
+		$key = array_search($mval,$explode);
+		unset($explode[$key]);
+		}
+		//$explode = array_values($explode);
+		$implode = implode(',',$explode);
+		update_post_meta( $post_id, 'team_members', $implode );
+	}
+
+	// Add members in team
+	if(!empty($exit_mem)){
+	if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
+		
+		$add_mem[]  =    $_POST['add_member_id'] ;
+	
+		$explode    =    explode(',',$exit_mem);
+		$result     =    array_merge($add_mem,$explode);
+		$result		= 	 array_unique($result); 
+		$implode    = implode(',',$result);
+				
+		update_post_meta( $post_id, 'team_members', $implode );
+		
+	endif;
+	}else{
+		if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
+		update_post_meta( $post_id, 'team_members', $_POST['add_member_id']);
+		endif;
+		}
+	//remove team campaigns
+	if(isset($_POST['remove_teamcampaigns'])){
+		foreach($_POST['remove_teamcampaigns'] as $camp_id){
+			update_post_meta($camp_id,'team_campaigns','');
+			}
+		}
 }
-if(!isset($_POST['remove_members']) && !empty($_POST['add_member_id']) && !isset($_POST['add_member_id']) ){
+
 add_action( 'save_post','update_content_add_team_campaign');
-}
