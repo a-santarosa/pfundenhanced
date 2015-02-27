@@ -749,11 +749,13 @@ function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
 			 $sql3 = 0;
 			foreach($sql as $p)
 			{
+				//echo  $p->post_id.'-';
 			 $sql2 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
 			  $sql3 =$sql3 + $sql2 ; 
 			}
-			
-				echo $sql3;
+			$total_raised=get_post_meta($campaign_id,'_pfund_gift-tally',true);
+			echo $total_raised;
+			//echo $sql3;
 			 //print_r($sql);
 			 //$sql2 = $wpdb->get_results("SELECT DISTINCT(meta_value) FROM `wp_postmeta` WHERE post_id IN($sql) AND meta_key = '_pfund_gift-tally'");
 			// print_r($sql2);
