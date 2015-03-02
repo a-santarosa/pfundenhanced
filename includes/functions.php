@@ -2779,10 +2779,12 @@ function save_cj_team_data()
 {
 
 	global $wpdb;
-
+	$team_value = $_POST['join_teams'];
 	if(isset($_POST['join_team']) and $_POST['join_team']=='yes'):
-
-	$reg_id = $wpdb->get_row("SELECT registration_id,id FROM ".$wpdb->prefix."events_attendee WHERE email='".$_POST['email']."'"); 
+	
+	$team_members  =  get_post_meta($team_value,'team_members',true);
+	
+	$reg_id = $wpdb->get_row("SELECT registration_id,id FROM ".$wpdb->prefix."events_attendee WHERE email='".$_POST['email']."' AND id NOT IN ('".$team_members."')  ORDER BY id DESC LIMIT 1 "); 
 
     $xreg_id = $wpdb->get_results("SELECT id FROM ".$wpdb->prefix."events_attendee WHERE registration_id='".$reg_id->registration_id."' and id!='".$reg_id->id."'"); 
 
