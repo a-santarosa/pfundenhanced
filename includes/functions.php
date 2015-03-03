@@ -2785,11 +2785,12 @@ function save_cj_team_data()
 	$team_members  =  get_post_meta($team_value,'team_members',true);
 	
 	$reg_id = $wpdb->get_row("SELECT registration_id,id FROM ".$wpdb->prefix."events_attendee WHERE email='".$_POST['email']."' AND id NOT IN ('".$team_members."')  ORDER BY id DESC LIMIT 1 "); 
-
-    $xreg_id = $wpdb->get_results("SELECT id FROM ".$wpdb->prefix."events_attendee WHERE registration_id='".$reg_id->registration_id."' and id!='".$reg_id->id."'"); 
-
-    $xatid=$reg_id->id;
-
+	
+	
+    $xreg_id = $wpdb->get_results("SELECT id FROM ".$wpdb->prefix."events_attendee WHERE registration_id='".$reg_id->registration_id."' and id !='".$reg_id->id."'"); 
+	
+    $xatid = $reg_id->id;
+	
 	if(sizeof($xreg_id)>0)
 
 	{
@@ -2802,7 +2803,7 @@ function save_cj_team_data()
 
 	}
 
-	$team_value=$_POST['join_teams'];
+	
 
 	if(is_numeric($team_value))
 
@@ -3751,8 +3752,8 @@ function update_content_add_team_campaign($post_id)
 	/* OK, it's safe for us to save the data now. */
 
 	// Sanitize user input.
-	$exit_mem   =    get_post_meta($post_id,'team_members',true); 
-
+	$exit_mem   =    get_post_meta($post->ID,'team_members',true); 
+	
 	$explode    =    explode(',',$exit_mem); 
 	
 	// remove members from team
@@ -3765,7 +3766,7 @@ function update_content_add_team_campaign($post_id)
 		}
 		//$explode = array_values($explode);
 		$implode = implode(',',$explode);
-		update_post_meta( $post_id, 'team_members', $implode );
+		update_post_meta( $post->ID, 'team_members', $implode );
 	}
 
 	// Add members in team
@@ -3779,12 +3780,12 @@ function update_content_add_team_campaign($post_id)
 		$result		= 	 array_unique($result); 
 		$implode    = implode(',',$result);
 				
-		update_post_meta( $post_id, 'team_members', $implode );
+		update_post_meta( $post->ID, 'team_members', $implode );
 		
 	endif;
 	}else{
 		if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
-		update_post_meta( $post_id, 'team_members', $_POST['add_member_id']);
+		update_post_meta( $post->ID, 'team_members', $_POST['add_member_id']);
 		endif;
 		}
 	//remove team campaigns
