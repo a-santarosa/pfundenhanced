@@ -217,7 +217,16 @@ function pfund_activate( $flush_rules = true ) {
             $pfund_options['mandrill_email_publish_text'] = 'Dear *|NAME|*'.PHP_EOL.PHP_EOL;
             $pfund_options['mandrill_email_publish_text'] .= 'Your campaign, *|CAMP_TITLE|* has been approved.'.PHP_EOL;
             $pfund_options['mandrill_email_publish_text'] .= 'You can view your campaign at: *|CAMP_URL|*.'.PHP_EOL;
-        }        
+        }  
+		
+		 if ( ! isset( $pfund_options['mandrill_email_publish_text1'] ) ) {
+            $pfund_options['mandrill_email_publish_text1'] = "Dear |fname| |lname|,".PHP_EOL.PHP_EOL;
+            $pfund_options['mandrill_email_publish_text1'] .= "Thank you for registering your team for the Hospice Dash.".PHP_EOL.PHP_EOL;
+            $pfund_options['mandrill_email_publish_text1'] .= "You can view your team and its members here: |team_campaign_link|".PHP_EOL.PHP_EOL;
+			$pfund_options['mandrill_email_publish_text1'] = "If you are interested in creating your own fundraising page to support Niagara Hospice's work, |cuase_link|".PHP_EOL.PHP_EOL;
+            $pfund_options['mandrill_email_publish_text1'] .= "Happy training!".PHP_EOL.PHP_EOL;
+            $pfund_options['mandrill_email_publish_text1'] .= "The Hospice Dash Committee".PHP_EOL.PHP_EOL;
+        }         
         
         if ( ! isset( $pfund_options['mandrill_email_donate_html'] ) ) {
             $pfund_options['mandrill_email_donate_html'] = '<h1>Your fundraiser received a donation!</h1>'.PHP_EOL;
