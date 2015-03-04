@@ -2833,12 +2833,15 @@ function save_cj_team_data()
 	  }
 
 	 // Email
-
+	$pfund_options = get_option( 'pfund_options' );
 	$to      = $_POST['email'];
 
 	$subject = 'Team URL';
-
-	$message = 'Dear '.$_POST['fname'].' '.$_POST['lname'].',<br/><br/>Thank you for registering your team for the Hospice Dash.<br/><br/>You can view your team and its members here: <a href="'.get_permalink($post_id).'">here</a><br/><br/>If you are interested in creating your own fundraising page to support Niagara Hospice&#39;s work, <a href="http://hospicedash.com/causes/hospice-dash-5k/">click here.</a><br/><br/>Happy training!<br/><br/>The Hospice Dash Committee';
+	$old_message = $pfund_options['mandrill_email_publish_text1'];
+	$search = array('|fname|','|lname|','|team_campaign_link|','|cuase_link|');
+	$replace = array($_POST['fname'],$_POST['lname'],'<a href="'.get_permalink($post_id).'">here</a>','<a href="http://hospicedash.com/causes/hospice-dash-5k/">click here.</a>');
+	$message = str_ireplace($search, $replace, $old_message);
+	//$message = 'Dear '.$_POST['fname'].' '.$_POST['lname'].',<br/><br/>Thank you for registering your team for the Hospice Dash.<br/><br/>You can view your team and its members here: <a href="'.get_permalink($post_id).'">here</a><br/><br/>If you are interested in creating your own fundraising page to support Niagara Hospice&#39;s work, <a href="http://hospicedash.com/causes/hospice-dash-5k/">click here.</a><br/><br/>Happy training!<br/><br/>The Hospice Dash Committee';
 
 	$headers  = 'MIME-Version: 1.0' . "\r\n";
 
@@ -2906,13 +2909,16 @@ function save_cj_team_data()
    endforeach;
 
 	/*Email*/
-
+	$pfund_options = get_option( 'pfund_options' );
 	$to      = $_POST['email'];
 
 	$subject = 'Team URL';
-
-	$message = 'Dear '.$_POST['fname'].' '.$_POST['lname'].',<br/><br/>Thank you for registering your team for the Hospice Dash.<br/><br/>You can view your team and its members here: <a href="'.get_permalink($post_id).'">here</a><br/><br/>If you are interested in creating your own fundraising page to support Niagara Hospice&#39;s work, <a href="http://hospicedash.com/causes/hospice-dash-5k/">click here.</a><br/><br/>Happy training!<br/><br/>The Hospice Dash Committee';
-
+	$old_message = $pfund_options['mandrill_email_publish_text1'];
+	$search = array('|fname|','|lname|','|team_campaign_link|','|cuase_link|');
+	$replace = array($_POST['fname'],$_POST['lname'],'<a href="'.get_permalink($post_id).'">here</a>','<a href="http://hospicedash.com/causes/hospice-dash-5k/">click here.</a>');
+	$new_message = str_ireplace($search, $replace, $old_message);
+	//$message = 'Dear '.$_POST['fname'].' '.$_POST['lname'].',<br/><br/>Thank you for registering your team for the Hospice Dash.<br/><br/>You can view your team and its members here: <a href="'.get_permalink($post_id).'">here</a><br/><br/>If you are interested in creating your own fundraising page to support Niagara Hospice&#39;s work, <a href="http://hospicedash.com/causes/hospice-dash-5k/">click here.</a><br/><br/>Happy training!<br/><br/>The Hospice Dash Committee';
+	$message = $new_message;
 	$headers  = 'MIME-Version: 1.0' . "\r\n";
 
 	$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
