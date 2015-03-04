@@ -821,24 +821,23 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 		$validateSlug['extraData'] = $campaign_id;
 	}
 	//$return_form .= '<button class="pfund-edit-btn">'. __( 'Edit', 'pfund' ).'</button>';
-	$matv = get_post_meta($post->ID,'team_members');
+	$matv = get_post_meta($post->ID,'team_members',true);
 	$members_id[] = explode(',',$matv[0]);
 	global $wpdb;
 	$sql1 = array();
+	$p = array();
     /*$table_name = $wpdb->prefix . "posts"; 
 	$table_name1 = $wpdb->prefix . "postmeta"; 
 	
 	$sql1 = $wpdb->get_results("SELECT post_title,post_author,id,post_name FROM ".$table_name." as a INNER JOIN ".$table_name1." as b WHERE a.`ID` = b.`post_id` AND `post_type` = 'pfund_campaign' AND `meta_key`='team_campaigns' AND `meta_value`='".$matv[0]."'"); */
 	foreach($members_id[0] as $mem_id){
-		if($mem_id != '')
-		$sql1[] = $wpdb->get_results("SELECT fname, lname FROM ". $wpdb->prefix."events_attendee WHERE id = ".$mem_id);
+		//if($mem_id != '')
+		//$sql1[] = $wpdb->get_results("SELECT fname, lname FROM ". $wpdb->prefix."events_attendee WHERE id = ".$mem_id);
+		
 		}
-	//foreach($sql1 as $data1){
-	//foreach($data1 as $data2){	
-	//$p[]=$data2;}
-	//}
-   // $result = array_unique($p);
-   
+		if(!empty($matv)){
+		$sql1 = $wpdb->get_results("SELECT fname, lname FROM ". $wpdb->prefix."events_attendee WHERE id IN (".$matv.") ORDER BY lname");
+		}
    /* added 03-02-2015*/
 	$team_title = get_the_title( $post->ID );
 	$personal_ids 	= $wpdb->get_results('SELECT post_id FROM '.$wpdb->prefix.'postmeta WHERE meta_value = "'.$team_title.'"' );
@@ -851,33 +850,32 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 					);
 		
 		}
+	//sort($data_array);
 /*end editing*/
     $i=0;
 	$return_form .='<div style="padding:10px 0px;margin-top:20px;">
-	<h2>Lists Of Team Members</h2>
+	<h2>List Of Team Members</h2>
 	<table>
 	<thead><tr><th style="width:150px;">Team Member Name</th><th>|        Team Members with Fundraising Pages</th></tr></thead>
 	<tbody>
 	';
-	foreach($sql1 as $data1){
-		foreach($data1 as $data_member){
-	//$raised=get_post_meta($data1->id,'_pfund_gift-tally');
-	//if($data1->post_author != $same){	
-	//$userdata=get_userdata( $data1 );
+	
+	//foreach($sql1 as $data1){
+		$pfund_options = get_option( 'pfund_options' );
+		foreach($sql1 as $data_member){
+	
         if($data_member->fname!=''){ 	
 	$return_form .='<tr><td style="text-align:center;">'.$data_member->fname.' '.$data_member->lname.'</td><td style="text-align:center;">No fundraising page.</td></tr>';
 	}	
+		}
 	//}
-	/*$total[] =$raised[0];
-	$same=$data1->post_author;
-	$i++;*/}
-	}
 	foreach($data_array as $data){
         if($data['fname']!=''){ 	
-	$return_form .='<tr><td style="text-align:center;">'.$data['fname'].' '.$data['lname'].'</td><td style="text-align:center;"><a target="_blank" href="'.site_url().'/give/'.$data['url'].'">'.$data['fname'].' '.$data['lname'].'</a></td></tr>';
+	$return_form .='<tr><td style="text-align:center;">'.$data['fname'].' '.$data['lname'].'</td><td style="text-align:center;"><a target="_blank" href="'.site_url().'/'.$pfund_options["campaign_slug"].'/'.$data['url'].'">'.$data['fname'].' '.$data['lname'].'</a></td></tr>';
 		}
 	}
 	$return_form .='</table>';
+	
    /* if(!empty($total)){
 	//$return_form .='<h2>Total Raised By Team :- $'.array_sum($total).'</h2>';
 	$return_form .=
@@ -1703,7 +1701,6 @@ function _pfund_current_user_can_create( $pfund_options = array() ) {
  */
 function _pfund_current_user_can_submit( $pfund_options = array() ) {
 	if ( empty( $pfund_options ) ) {
-
 		$pfund_options = get_option( 'pfund_options' );
 	}
 	if ( ! empty ($pfund_options['submit_role']) ) {
