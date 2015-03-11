@@ -822,6 +822,8 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	}
 	//$return_form .= '<button class="pfund-edit-btn">'. __( 'Edit', 'pfund' ).'</button>';
 	$matv = get_post_meta($post->ID,'team_members',true);
+	$members = explode(',',$matv);
+	$members_ids = implode(',',array_filter($members));
 	$members_id[] = explode(',',$matv[0]);
 	global $wpdb;
 	$sql1 = array();
@@ -836,7 +838,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 		
 		}
 		if(!empty($matv)){
-		$sql1 = $wpdb->get_results("SELECT fname, lname FROM ". $wpdb->prefix."events_attendee WHERE id IN (".$matv.") ORDER BY lname");
+		$sql1 = $wpdb->get_results("SELECT fname, lname FROM ". $wpdb->prefix."events_attendee WHERE id IN (".$members_ids.") ORDER BY lname");
 		}
    /* added 03-02-2015*/
 	$team_title = get_the_title( $post->ID );
@@ -862,8 +864,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	
 	//foreach($sql1 as $data1){
 		$pfund_options = get_option( 'pfund_options' );
-		foreach($sql1 as $data_member){
-	
+		foreach($sql1 as $data_member){ 
         if($data_member->fname!=''){ 	
 	$return_form .='<tr><td style="text-align:center;">'.$data_member->fname.' '.$data_member->lname.'</td><td style="text-align:center;">No fundraising page.</td></tr>';
 	}	
@@ -871,7 +872,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	//}
 	foreach($data_array as $data){
         if($data['fname']!=''){ 	
-	$return_form .='<tr><td style="text-align:center;">'.$data['fname'].' '.$data['lname'].'</td><td style="text-align:center;"><a target="_blank" href="'.site_url().'/'.$pfund_options["campaign_slug"].'/'.$data['url'].'">'.$data['fname'].' '.$data['lname'].'</a></td></tr>';
+	$return_form .='<tr><td style="text-align:center;">'.$data['fname'].' '.$data['lname'].'</td><td style="text-align:center;"><a target="_blank" href="'.site_url().'/'.$pfund_options["campaign_slug"].'/'.$data['fname'].'-'.$data['lname'].'">'.$data['fname'].' '.$data['lname'].'</a></td></tr>';
 		}
 	}
 	$return_form .='</table>';
