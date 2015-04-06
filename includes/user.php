@@ -724,6 +724,7 @@ function pfund_authorize_net_donate_form() {
 function pfund_edit() {
 	global $post, $current_user;
 	$current_user = wp_get_current_user();
+	
 	/**/
 	if ( ! _pfund_current_user_can_create( ) ) {
 		return '';	
@@ -803,7 +804,9 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
  $return_form .= '</select>';?>
 
 <?php
-    
+    $return_form .= 'Enter Image Text
+<input class="pfund-text validate[required,ajax[pfundCaptcha]]" id="pfund-captcha" name="pfund-captcha" type="text">
+<img src="'.PFUND_URL.'/includes/captcha.php" />';
 	$return_form .= '</form>';
 	$return_form .= '</div>';
 	//$message = get_post_meta($post->ID,'_pfund_message',true);
@@ -812,6 +815,11 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	//if($image!=''){$return_form .="<img src=".$image." style='width:250px;margin-top:10px;margin-bottom:10px;' />";}
 	//if($message!=''){$return_form .= "<p style='margin:0; font-weight:bold;'>Personal Message : </p><div style='margin-bottom:20px;'>".$message."</div>";}
 	//$return_form .= do_shortcode('[pfund-donate]')."<p></p>";
+	$validateCaptcha = array(
+		'file' => PFUND_URL.'validate-captcha.php',
+		'alertTextLoad' => __( 'Please wait while we validate this captcha', 'pfund' ),
+		'alertText' => __( '* Invalid Captcha.', 'pfund' )
+	);
 	$validateSlug = array(
 		'file' => PFUND_URL.'validate-slug.php',
 		'alertTextLoad' => __( 'Please wait while we validate this url', 'pfund' ),
@@ -820,6 +828,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
 	if ( $editing_campaign ) {
 		$validateSlug['extraData'] = $campaign_id;
 	}
+	
 	//$return_form .= '<button class="pfund-edit-btn">'. __( 'Edit', 'pfund' ).'</button>';
 	$matv = get_post_meta($post->ID,'team_members',true);
 	$members = explode(',',$matv);
@@ -2085,6 +2094,8 @@ function _pfund_save_teamcamp( $post, $update_type = 'add' ) {
 	}
 
 	if ( $update_type == 'add') {
+		
+		//$_SESSION['challange_field'] = $_POST['recaptcha_challenge_field'];
 		$campaign_fields['post_type'] = 'teamcampaigns';
 		$slug_id = $_POST['cause-slug'];
 		$campaign_id = wp_insert_post( $campaign_fields );

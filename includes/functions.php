@@ -2100,6 +2100,16 @@ function pfund_get_validation_js() {
 		'alertText' => __( '* This location is already taken', 'pfund' )
 
 	);
+	
+	$validateCaptcha = array(
+
+		'file' => PFUND_URL.'validate-captcha.php',
+
+		'alertTextLoad' => __( 'Please wait while we validate this captcha', 'pfund' ),
+
+		'alertText' => __( '* Invalid Captcha.', 'pfund' )
+
+	);
 
     $required_validation = array(
 
@@ -2154,6 +2164,8 @@ function pfund_get_validation_js() {
     return array(
 
         'pfundSlug' => $validateSlug,
+		
+		'pfundCaptcha' => $validateCaptcha,
 
         'required' => $required_validation,
 
@@ -3312,7 +3324,6 @@ function team_members_meta_box_callback( $post ) {
 					);
 		
 		}
-		
 		foreach($data_array as $data){
         if(!empty($data['fname'])){ 	
 	echo '<input type="checkbox" name="remove_teamcampaigns[]" value="'.$data['id'].'">'.$data['fname'].' '.$data['lname'].'&nbsp;&nbsp;';
@@ -3340,96 +3351,6 @@ function team_members_meta_box_callback( $post ) {
 	
 
 }
-
-
-
-/**
-
- * When the post is saved, saves our custom data.
-
- *
-
- * @param int $post_id The ID of the post being saved.
-
- */
-
-function team_members_save_meta_box_data( $post_id ) {
-	/*
-	 * We need to verify this came from our screen and with proper authorization,
-	 * because the save_post action can be triggered at other times.
-	 */
-
-	// Check if our nonce is set.
-	if ( ! isset( $_POST['team_members_meta_box_nonce'] ) ) {
-		return;
-	}
-
-	// Verify that the nonce is valid.
-	if ( ! wp_verify_nonce( $_POST['team_members_meta_box_nonce'], 'team_members_meta_box' ) ) {
-		return;
-	}
-
-	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
-	}
-
-	// Check the user's permissions.
-	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
-		if ( ! current_user_can( 'edit_page', $post_id ) ) {
-			return;
-		}
-	} else {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
-	}
-	/* OK, it's safe for us to save the data now. */
-
-	// Sanitize user input.
-	$exit_mem   =    get_post_meta($post_id,'team_members',true); 
-
-	$explode    =    explode(',',$exit_mem); 
-	
-	// remove members from team
-	if(isset($_POST['remove_members'])) {
-		$remove_mem =     $_POST['remove_members'];
-		foreach($remove_mem as $mval)
-		 {
-		$key = array_search($mval,$explode);
-		unset($explode[$key]);
-		}
-		//$explode = array_values($explode);
-		$implode = implode(',',$explode);
-		update_post_meta( $post_id, 'team_members', $implode );
-	}
-
-	// Add members in team
-	//if(!empty($exit_mem)){
-	if(isset($_POST['add_member_id']) && !empty($_POST['add_member_id'])):
-		
-		$add_mem[]  =    $_POST['add_member_id'] ;
-	
-		$explode    =    explode(',',$exit_mem);
-		$result     =    array_merge($add_mem,$explode);
-		$result		= 	 array_unique($result); 
-		$implode    = implode(',',$result);
-				
-		update_post_meta( $post_id, 'team_members', $implode );
-		
-	endif;
-	//}
-	//remove team campaigns
-	if(isset($_POST['remove_teamcampaigns'])){
-		foreach($_POST['remove_teamcampaigns'] as $camp_id){
-			update_post_meta($camp_id,'team_campaigns','');
-			}
-		}
-	
-	
-}
-
-//add_action( 'save_post', 'team_members_save_meta_box_data' );
 
 add_action('admin_footer','load_search_member_js');
 
@@ -3585,6 +3506,7 @@ function add_script() {
 
 		 echo '<script>
 
+
 		jQuery(document).ready(function(){
 
 			
@@ -3634,7 +3556,7 @@ function add_script() {
 				jQuery("#pfund-camp-location").val(url);
 
 				});
-
+			
 		}); </script>';
 
 	}
@@ -3714,15 +3636,28 @@ function update_content_add_team_campaign($post_id)
 	$team_camp_id 	= $wpdb->get_var('SELECT ID FROM '.$wpdb->prefix.'posts WHERE post_title = "'.$team_title.'" AND post_status = "publish"' );
 
 	$team_tally = get_post_meta($team_camp_id,'_pfund_gift-tally',true);
+	$team_goal = get_post_meta($team_camp_id,'_pfund_gift-goal',true);
 		$campaign_tally =  get_post_meta($post_id,'_pfund_gift-tally',true);
+		$campaign_goal =  get_post_meta($post_id,'_pfund_gift-goal',true);
 		
 		if(isset($_POST['pfund-gift-tally'])){
 			 $campaign_tally = $_POST['pfund-gift-tally'] - $campaign_tally;
 			}else{
 		$campaign_tally = get_post_meta($post_id,'_pfund_gift-tally',true);
 			}
+		if(isset($_POST['pfund-gift-goal'])){
+			if($_POST['pfund-gift-goal'] >= $campaign_goal || $_POST['pfund-gift-goal'] <= $campaign_goal){
+				$team_goal = $team_goal + ($_POST['pfund-gift-goal'] - $campaign_goal );
+				if($team_goal <= 0 ){
+					$team_goal = 0;
+					}
+				}else{
+			$team_goal = $team_goal + $_POST['pfund-gift-goal'];
+			}
+		}
 			$team_tally = $team_tally + $campaign_tally;
 		update_post_meta($team_camp_id,'_pfund_gift-tally',$team_tally);
+		update_post_meta($team_camp_id,'_pfund_gift-goal',$team_goal);
 			}
 	}
 	/*
@@ -3796,7 +3731,17 @@ function update_content_add_team_campaign($post_id)
 		}
 	//remove team campaigns
 	if(isset($_POST['remove_teamcampaigns'])){
+		
+	
 		foreach($_POST['remove_teamcampaigns'] as $camp_id){
+	$team_title = get_post_meta( $camp_id,'team_campaigns',true );
+	$team_camp_id 	= $wpdb->get_var('SELECT ID FROM '.$wpdb->prefix.'posts WHERE post_title = "'.$team_title.'" AND post_status = "publish"' );
+	$team_goal = get_post_meta($team_camp_id,'_pfund_gift-goal',true);
+			$campaign_goal =  get_post_meta($camp_id,'_pfund_gift-goal',true);
+			
+			$team_goal = $team_goal - $campaign_goal;
+			
+			update_post_meta($team_camp_id, '_pfund_gift-goal', $team_goal);
 			update_post_meta($camp_id,'team_campaigns','');
 			}
 		}
