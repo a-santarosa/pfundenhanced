@@ -5,10 +5,19 @@ add_action('action_hook_espresso_registration_form_bottom','create_or_join_team'
 if(!function_exists('create_or_join_team')):
 function create_or_join_team()
 {
+	$digit1 = mt_rand(1,20);
+	$digit2 = mt_rand(1,20);
+if( mt_rand(0,1) === 1 ) {
+    $math = "$digit1 + $digit2";
+    $_SESSION['answer'] = $digit1 + $digit2;
+} else {
+    $math = "$digit1 - $digit2";
+    $_SESSION['answer'] = $digit1 - $digit2;
+}
 	?>
               
                <script>
-				var $jt=jQuery.noConflict();
+		var $jt=jQuery.noConflict();
                 $jt(document).ready(function(){	
 				$jt(".espresso_add_subtract_attendees").before("<div id='join_team_main' style='border:1px solid;margin-top:10px'><div style='padding:10px;' id='load_team'> Do you want to Join/Create a Team ?  Yes <input type='radio' id='join_yes' name='join_team' value='yes'/> No <input type='radio' id='join_no' name='join_team' value='no' /></div><img id='loader' style='display:none;' src='<?php echo plugins_url( 'loader.gif', __FILE__ ); ?>'></img></div>");
 					$jt('#join_yes').click(function(){
@@ -52,16 +61,35 @@ function create_or_join_team()
 					function loadnewname()
 					{
 					 var $new_team_name = document.getElementById('team_name').value;
+					 var url = "<?php echo site_url(); ?>/wp-content/plugins/personal-fundraiser/includes/validate-captcha.php";
+					 var captcha = $jt("#pfund-captcha").val();
+						 
 					 if($new_team_name=='')
 						  {
-							 alert('Please Enter team name!');
-							
+							  alert('Please Enter team name!');
 						  }
 						 else 
 						  {
 							var ntn='<option value="'+$new_team_name+'" selected="selected">'+$new_team_name+'</option>'; 
+							$jt.ajax({
+								url: url,
+								data: { captcha:captcha},
+								type: "post", 
+								success:function(response) {
+								if(response == "wrong"){
+								alert("Invalid Captcha!");
+								return false;
+								}else{
 							$jt('#join_teams').append(ntn);
 							$jt('#new_create_team').hide();
+									}
+																
+								},
+								error: function(errorThrown){
+									console.log(errorThrown);
+								}
+							}); 
+							
 						  }
 					   
 					}
@@ -78,6 +106,7 @@ function edit_your_team()
 {
 	if($_GET['edit_attendee'] == true):
 	global $wpdb;
+;
 	$member_id = $_GET['id'];
 	$query="SELECT post_id FROM ".$wpdb->prefix."postmeta WHERE `meta_key` = 'team_members' AND `meta_value` LIKE '%".$member_id."%'";
     $result=$wpdb->get_row($query);	

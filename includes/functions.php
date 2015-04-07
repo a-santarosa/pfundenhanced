@@ -2101,7 +2101,7 @@ function pfund_get_validation_js() {
 
 	);
 	
-	$validateCaptcha = array(
+	/*$validateCaptcha = array(
 
 		'file' => PFUND_URL.'validate-captcha.php',
 
@@ -2110,7 +2110,7 @@ function pfund_get_validation_js() {
 		'alertText' => __( '* Invalid Captcha.', 'pfund' )
 
 	);
-
+*/
     $required_validation = array(
 
         'regex' => 'none',
@@ -2165,7 +2165,7 @@ function pfund_get_validation_js() {
 
         'pfundSlug' => $validateSlug,
 		
-		'pfundCaptcha' => $validateCaptcha,
+		/*'pfundCaptcha' => $validateCaptcha,*/
 
         'required' => $required_validation,
 
@@ -2765,9 +2765,10 @@ function Load_team_data_callback()
 		echo '</select></div>';
 
 		echo '<div id="new_create_team" style="display:none;"><input placeholder="Enter Team Name" type="text" name="team_name" id="team_name" />
+<input class="pfund-text" id="pfund-captcha" name="pfund-captcha" placeholder="Enter Image Text" type="text">
+<img src="'.PFUND_URL.'includes/captcha.php" />
 
                 <input type="button" class="btn_event_form_submit ui-button ui-button-big ui-priority-primary ui-state-default ui-state-hover ui-state-focus ui-corner-all" id="create_team_button" value="Create Team" onclick="loadnewname();"/></div>';
-
 		endif;
 
 				?>
@@ -3505,7 +3506,6 @@ function add_script() {
 	{
 
 		 echo '<script>
-
 
 		jQuery(document).ready(function(){
 
