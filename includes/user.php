@@ -804,7 +804,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
  $return_form .= '</select>';?>
 
 <?php
-   // $return_form .= 'Enter Image Text<input class="pfund-text validate[required,ajax[pfundCaptcha]]" id="pfund-captcha" name="pfund-captcha" type="text"><img src="'.PFUND_URL.'/includes/captcha.php" />';
+    $return_form .= 'Enter Image Text<input class="pfund-text validate[required,ajax[pfundCaptcha]]" id="pfund-captcha" name="pfund-captcha" type="text"><img src="'.PFUND_URL.'/includes/captcha.php" />';
 	$return_form .= '</form>';
 	$return_form .= '</div>';
 	//$message = get_post_meta($post->ID,'_pfund_message',true);
