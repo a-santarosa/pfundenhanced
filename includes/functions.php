@@ -2101,7 +2101,7 @@ function pfund_get_validation_js() {
 
 	);
 	
-	/*$validateCaptcha = array(
+	$validateCaptcha = array(
 
 		'file' => PFUND_URL.'validate-captcha.php',
 
@@ -2110,7 +2110,7 @@ function pfund_get_validation_js() {
 		'alertText' => __( '* Invalid Captcha.', 'pfund' )
 
 	);
-*/
+
     $required_validation = array(
 
         'regex' => 'none',
