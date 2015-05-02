@@ -2679,7 +2679,7 @@ $user_ID = get_current_user_id();
 
 $user = new WP_User( $user_id );
 
-if($user->roles[0]!='administrator' )
+if($user->roles!='administrator' )
 
 {
 
@@ -3454,8 +3454,9 @@ function Load_search_member_callback()
 
 	$get_exit_mem   =    get_post_meta($_POST['post_id'],'team_members',true);
 
-	$exit_mem       =    trim($get_exit_mem,',');
-	
+	$exit_mem1       =  trim($get_exit_mem,',');
+	$exit_mem        =  str_replace(',,', ',', $exit_mem1);
+
 	$attendee_name= $_POST['smem'];
 	
 	if(!empty($exit_mem)):
