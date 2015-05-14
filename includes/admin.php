@@ -526,7 +526,6 @@ function pfund_admin_setup() {
 	add_meta_box( 'commentsdiv', __( 'Donation Listing', 'pfund' ), 'pfund_transaction_listing', 'pfund_campaign', 'normal', 'high' );
     add_meta_box( 'pfund-add-donation-fields', __( 'Add Donation', 'pfund' ), 'pfund_add_donation_box', 'pfund_campaign', 'side');
 	add_meta_box( 'pfund-cause-meta', __( 'Personal Fundraising fields', 'pfund' ), 'pfund_cause_meta', 'pfund_cause', 'normal', 'high' );
-
     add_meta_box( 'pfund-reset-author', __( 'Reset Author', 'pfund'), 'pfund_reset_author', 'pfund_campaign', 'side');
 }
 function pfund_admin_setup1() {
@@ -610,7 +609,6 @@ function wpse35165_add_cap()
     $grant      = true; 
 
     foreach ( $GLOBALS['wp_roles'] as $role_obj )
-
     {
         if ( 
             ! $role_obj->has_cap( $custom_cap ) 
@@ -758,16 +756,24 @@ function teamcampaigns_posts_custom_column( $column_name, $campaign_id ) {
 			$table_name1 = $wpdb->prefix . "posts"; 
 			 $value = get_the_title($campaign_id);
 			$sql = $wpdb->get_results("SELECT DISTINCT(post_id) FROM ".$table_name." a INNER JOIN ".$table_name1." b ON b.ID = a.post_id WHERE post_type = 'pfund_campaign' AND meta_value='".$value."'");
+			$sql99 = $wpdb->get_results("SELECT DISTINCT(post_id) FROM ".$table_name." a INNER JOIN ".$table_name1." b ON b.ID = a.post_id WHERE post_type = 'teamcampaigns' AND meta_value='".$value."'");
 			//echo "SELECT DISTINCT(post_id) FROM `wp_postmeta` a INNER JOIN `wp_posts` b ON b.ID = a.post_id WHERE post_type = 'pfund_campaign' AND meta_value='".$value."'";
-			 $sql3 = 0;
+			$sql3 = 0;
 			foreach($sql as $p)
 			{
 				//echo  $p->post_id.'-';
 			 $sql2 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
 			  $sql3 =$sql3 + $sql2 ; 
 			}
+			$sql39 = 0;
+			foreach($sql99 as $p)
+			{
+				//echo  $p->post_id.'-';
+			 $sql29 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
+			  $sql39 =$sql39 + $sql29 ; 
+			}
 			$total_raised=get_post_meta($campaign_id,'_pfund_gift-tally',true);
-			echo $total_raised;
+			echo $sql3+$sql39;
 			//echo $sql3;
 			 //print_r($sql);
 			 //$sql2 = $wpdb->get_results("SELECT DISTINCT(meta_value) FROM `wp_postmeta` WHERE post_id IN($sql) AND meta_key = '_pfund_gift-tally'");
