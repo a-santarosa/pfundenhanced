@@ -804,7 +804,7 @@ $return_form .= '<option value="'. $data->id.'" '.(($value==$data->post_title)? 
  $return_form .= '</select>';?>
 
 <?php
-    $return_form .= 'Enter Image Text<input class="pfund-text validate[required,ajax[pfundCaptcha]]" id="pfund-captcha" name="pfund-captcha" type="text"><img src="'.PFUND_URL.'/includes/captcha.php" />';
+   $return_form .= 'Enter Image Text<input class="pfund-text validate[required,ajax[pfundCaptcha]]" id="pfund-captcha" name="pfund-captcha" type="text"><img src="'.PFUND_URL.'/includes/captcha.php" />';
 	$return_form .= '</form>';
 	$return_form .= '</div>';
 	//$message = get_post_meta($post->ID,'_pfund_message',true);
@@ -1261,8 +1261,46 @@ function pfund_progress_bar( $attrs ) {
 	}
 
 	$options = get_option( 'pfund_options' );
-	$goal = get_post_meta( $postid, '_pfund_gift-goal', true );
-	$tally = get_post_meta( $postid, '_pfund_gift-tally', true );
+	global $wpdb;
+			$table_name = $wpdb->prefix . "postmeta"; 
+			$table_name1 = $wpdb->prefix . "posts"; 
+			 $value = get_the_title($postid);
+			$sql = $wpdb->get_results("SELECT DISTINCT(post_id) FROM ".$table_name." a INNER JOIN ".$table_name1." b ON b.ID = a.post_id WHERE post_type = 'pfund_campaign' AND meta_value='".$value."'");
+			$sql899 = $wpdb->get_results("SELECT DISTINCT(post_id) FROM ".$table_name." a INNER JOIN ".$table_name1." b ON b.ID = a.post_id WHERE post_type = 'teamcampaigns' AND meta_value='".$value."'");
+			$sql3 = 0;
+			foreach($sql as $p)
+			{
+				//echo  $p->post_id.'-';
+			 $sql2 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
+			  $sql3 =$sql3 + $sql2 ; 
+			}
+			$sql388 = 0;
+			foreach($sql as $p)
+			{
+				//echo  $p->post_id.'-';
+			 $sql288 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-goal'");
+			  $sql388 =$sql388 + $sql288 ; 
+			}
+			$sql38899 = 0;
+			foreach($sql899 as $p)
+			{
+				//echo  $p->post_id.'-';
+			 $sql2889 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-goal'");
+			  $sql38899 =$sql38899 + $sql2889 ; 
+			}
+			$sql388998 = 0;
+			foreach($sql899 as $p)
+			{
+				//echo  $p->post_id.'-';
+			 $sql28898 = $wpdb->get_var("SELECT DISTINCT(meta_value) FROM ".$table_name." WHERE post_id ='".$p->post_id."' AND meta_key = '_pfund_gift-tally'");
+			  $sql388998 =$sql388998 + $sql28898 ; 
+			}
+			
+	
+	//$goal = get_post_meta( $postid, '_pfund_gift-goal', true );
+	//$tally = get_post_meta( $postid, '_pfund_gift-tally', true );
+	$goal=$sql388+$sql38899;
+	$tally=$sql3+$sql388998;
 	if ( $tally == '' ) {
 		$tally = 0;
 	}
@@ -2072,7 +2110,6 @@ function _pfund_save_teamcamp( $post, $update_type = 'add' ) {
 	if ( $update_type == 'update' || $update_type == 'user-login' ) {
 		if ( $post->post_type == 'teamcampaigns' ) {
 			if ( _pfund_is_edit_new_campaign() ) {
-
 				$campaign = _pfund_get_new_campaign();
 				$campaign_id = $campaign->ID;
 				$current_status = $campaign->post_status;
