@@ -1303,6 +1303,7 @@ function pfund_transaction_listing( $post ){
     ), $csv_link );
 
 ?>
+<script type="text/javascript" src="/wp-content/plugins/personal-fundraiser/js/admin.js"></script>
 <p class="hide-if-no-js"><a href="#donationstatusdiv" id="pfund-show-donations" data-pfund-donation-start="0" data-pfund-donation-total="<?php echo $total;?>"><?php _e('Show donations','pfund'); ?></a> <img class="waiting" style="display:none;" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" /></p>
 <p><a href="<?php echo $csv_link;?>"><?php _e('Download CSV', 'pfund');?></a>
 
